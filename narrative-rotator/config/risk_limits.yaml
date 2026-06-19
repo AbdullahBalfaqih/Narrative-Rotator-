@@ -1,0 +1,27 @@
+limits:
+  daily_loss_drawdown_limit_pct: 5.0
+  max_allocation_per_sector: 0.4
+  max_single_trade_pct: 0.16
+  min_allocation_per_sector: 0.05
+  min_liquidity_usd: 100000
+  slippage_tolerance_pct: 0.5
+whitelist:
+  allowed_assets:
+  - FET
+  - WLD
+  - RNDR
+  - AGIX
+  - UNI
+  - AAVE
+  - CAKE
+  - DOGE
+  - SHIB
+  - PEPE
+  - ONDO
+  - CFG
+  - ARB
+  - OP
+  - MATIC
+  - USDC
+  - USDT
+  - WBNB

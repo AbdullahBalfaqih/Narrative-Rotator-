@@ -1,0 +1,52 @@
+{
+  "name": "temp-next",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "fetch-flowbite-list": "node C:/Users/Abdullah/.gemini/antigravity-ide/scratch/call_flowbite_list.cjs",
+    "fetch-flowbite-convert": "node C:/Users/Abdullah/.gemini/antigravity-ide/scratch/call_flowbite_convert.cjs",
+    "test-figma-tokens": "node C:/Users/Abdullah/.gemini/antigravity-ide/scratch/check_me_figma.cjs"
+  },
+  "dependencies": {
+    "@reown/appkit": "^1.8.21",
+    "@reown/appkit-adapter-wagmi": "^1.8.21",
+    "@tanstack/react-query": "^5.101.0",
+    "accounts": "file:src/dummy-accounts",
+    "clsx": "^2.1.1",
+    "dotted-map": "^3.1.0",
+    "encoding": "^0.1.13",
+    "flowbite-mcp": "^1.1.5",
+    "framer-motion": "^12.40.0",
+    "gsap": "^3.15.0",
+    "lokijs": "^1.5.12",
+    "motion": "^12.40.0",
+    "next": "16.2.9",
+    "next-themes": "^0.4.6",
+    "pino-pretty": "^13.1.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "tailwind-merge": "^3.6.0",
+    "viem": "^2.52.2",
+    "wagmi": "^3.6.17"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.9",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "browser": {
+    "accounts": false,
+    "pino-pretty": false,
+    "lokijs": false,
+    "encoding": false
+  }
+}

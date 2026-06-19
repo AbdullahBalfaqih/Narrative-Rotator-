@@ -1,0 +1,14 @@
+# Sentiment metric weightings for calculating sector heat values
+# Adjust these weights to tilt the tracker towards specific data sources
+
+weights:
+  social_sentiment: 0.35      # Twitter / Reddit sentiment trends (35%)
+  news_coverage: 0.25         # CMC News headlines frequency & tone (25%)
+  kol_mentions: 0.20          # Key opinion leaders (influencers) mentions (20%)
+  market_volume_surge: 0.15   # 24h trading volume surges on CMC (15%)
+  funding_rates_skew: 0.05    # Derivatives open interest funding rate bias (5%)
+
+thresholds:
+  rotation_trigger_heat_diff: 5.0 # Min heat index gap between hot and cold sectors to trigger rotation
+  cold_sector_exit_heat: 35.0      # Exit a sector completely if its heat index drops below 35%
+  hot_sector_entry_heat: 70.0      # Start scale-in to a sector once heat surges past 70%

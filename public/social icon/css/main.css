@@ -1,0 +1,111 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  font-size: 14px;
+}
+.v116_8899 {
+  width: 240px;
+  height: 24px;
+  background: url("../images/v116_8899.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  margin: 12px;
+  opacity: 1;
+  position: relative;
+  top: 0px;
+  left: 0px;
+  overflow: hidden;
+}
+.v116_8900 {
+  width: 24px;
+  height: 24px;
+  background: url("../images/v116_8900.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  opacity: 1;
+  position: relative;
+  top: 0px;
+  left: 0px;
+  overflow: hidden;
+}
+.v116_8902 {
+  width: 24px;
+  height: 24px;
+  background: url("../images/v116_8902.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  opacity: 1;
+  position: absolute;
+  top: 0px;
+  left: 36px;
+  overflow: hidden;
+}
+.v116_8904 {
+  width: 24px;
+  height: 24px;
+  background: url("../images/v116_8904.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  opacity: 1;
+  position: absolute;
+  top: 0px;
+  left: 72px;
+  overflow: hidden;
+}
+.v116_8906 {
+  width: 24px;
+  height: 24px;
+  background: url("../images/v116_8906.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  opacity: 1;
+  position: absolute;
+  top: 0px;
+  left: 108px;
+  overflow: hidden;
+}
+.v116_8908 {
+  width: 24px;
+  height: 24px;
+  background: url("../images/v116_8908.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  opacity: 1;
+  position: absolute;
+  top: 0px;
+  left: 144px;
+  overflow: hidden;
+}
+.v116_8910 {
+  width: 24px;
+  height: 24px;
+  background: url("../images/v116_8910.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  opacity: 1;
+  position: absolute;
+  top: 0px;
+  left: 180px;
+  overflow: hidden;
+}
+.v116_8912 {
+  width: 24px;
+  height: 24px;
+  background: url("../images/v116_8912.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  opacity: 1;
+  position: absolute;
+  top: 0px;
+  left: 216px;
+  overflow: hidden;
+}
