@@ -327,6 +327,7 @@ def get_status():
         "max_drawdown_pct": max_drawdown,
         "monitored_pairs": monitored_pairs,
         "bsc_block": bsc_block or "—",
+        "bnb_balance": portfolio_manager.bnb_balance,
     }
 
 @app.get("/api/metrics")

@@ -84,6 +84,7 @@ export default function Dashboard() {
   const [maxDrawdownStat, setMaxDrawdownStat] = useState(0);
   const [monitoredPairs, setMonitoredPairs] = useState(0);
   const [bscBlock, setBscBlock] = useState('#—');
+  const [bnbBalance, setBnbBalance] = useState(0);
 
   const [isBackendOffline, setIsBackendOffline] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -183,6 +184,7 @@ export default function Dashboard() {
       setMaxDrawdownStat(statusData.max_drawdown_pct ?? 0);
       setMonitoredPairs(statusData.monitored_pairs ?? 0);
       setBscBlock(statusData.bsc_block ? `#${statusData.bsc_block}` : '#—');
+      setBnbBalance(statusData.bnb_balance ?? 0);
 
       // Fetch metrics
       const metricsRes = await fetch('http://127.0.0.1:8000/api/metrics');
@@ -448,12 +450,8 @@ export default function Dashboard() {
       <nav className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4">
         <div className="flex max-w-[928px] w-full px-4 py-4 justify-between items-center rounded-[100px] bg-[rgba(20,20,20,0.75)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] shadow-sm">
           <a href="/" className="flex justify-center items-center gap-2 shrink-0">
-            <img
-              src="/icon.png"
-              alt="Spark Logo"
-              className="w-8 h-8 object-contain"
-            />
-            <p className="text-white font-medium text-xl leading-6">Spark</p>
+            <span className="w-3 h-3 bg-[#CDFC74] rounded-full"></span>
+            <p className="text-white font-medium text-xl leading-6">Narrative Rotator</p>
           </a>
           <div className="flex items-center gap-2">
             <button onClick={() => setShowSettings(true)} className="flex py-2.5 px-4 justify-center items-center rounded-[100px] text-[rgba(255,255,255,0.8)] text-base hover:text-white hover:bg-[rgba(255,255,255,0.1)] transition-colors">
@@ -478,6 +476,10 @@ export default function Dashboard() {
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-[100px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)]">
               <span className="text-[#C7C7C7] text-xs font-medium">Balance:</span>
               <span className="text-white text-sm font-semibold">${portfolioValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-[100px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)]">
+              <span className="text-[#F0B90B] text-xs font-medium">BNB:</span>
+              <span className="text-white text-sm font-semibold">{bnbBalance.toFixed(4)}</span>
             </div>
             <button
               onClick={toggleAutoTrade}

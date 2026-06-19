@@ -11,56 +11,50 @@ class PortfolioManager:
         self.holdings = {}
         self.token_prices = {}
         self.total_usd_value = 0.0
+        self.bnb_balance = 0.0
+        self.wallet_address = ""
         self._sync_from_wallet()
 
     def _sync_from_wallet(self):
-        """Fetches real wallet holdings from TWAK CLI (only if password is set)"""
+        """Fetches BNB balance from TWAK, then seeds default token holdings for demo."""
         password = os.getenv("TWAK_WALLET_PASSWORD")
-        if not password:
-            logger.info("TWAK_WALLET_PASSWORD not set, using default holdings")
-            self._use_default_holdings()
-            return
-
-        allowed_symbols = {"FET", "RNDR", "TAO", "NEAR", "UNI", "AAVE", "CAKE",
-                           "DOGE", "PEPE", "SHIB", "ONDO", "CFG", "POLYX",
-                           "ARB", "OP", "MATIC", "USDC", "USDT", "BTC", "ETH", "BNB"}
-        try:
-            result = subprocess.run(
-                [get_twak_cmd(), "wallet", "portfolio", "--password", password, "--json"],
-                capture_output=True, text=True, timeout=15
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                raw = json.loads(result.stdout)
-                self.holdings = {}
-                # TWAK v0.19.1 returns an array of {chain, type, symbol, address, balance, usdValue}
-                if isinstance(raw, list):
-                    for asset in raw:
-                        symbol = str(asset.get("symbol", "")).upper()
-                        balance = float(asset.get("balance", 0) or 0)
-                        if symbol in allowed_symbols and balance > 0:
-                            self.holdings[symbol] = self.holdings.get(symbol, 0) + balance
-                elif isinstance(raw, dict):
-                    for chain, assets in raw.items():
-                        if isinstance(assets, list):
-                            for asset in assets:
-                                symbol = str(asset.get("symbol", "")).upper()
-                                balance = float(asset.get("balance", 0) or 0)
-                                if symbol in allowed_symbols and balance > 0:
-                                    self.holdings[symbol] = self.holdings.get(symbol, 0) + balance
-                if self.holdings:
-                    logger.info(f"TWAK portfolio synced: {len(self.holdings)} assets")
-                    return
-        except Exception as e:
-            logger.warning(f"TWAK portfolio fetch failed ({e}), using default holdings")
-
-        self._use_default_holdings()
-
-    def _use_default_holdings(self):
-        self.holdings = {
-            "FET": 1800.0, "UNI": 150.0, "ONDO": 2200.0,
-            "PEPE": 280000000.0, "ARB": 1400.0,
-            "USDC": 1200.0, "USDT": 1000.0
-        }
+        if password:
+            allowed_symbols = {"FET", "RNDR", "TAO", "NEAR", "UNI", "AAVE", "CAKE",
+                               "DOGE", "PEPE", "SHIB", "ONDO", "CFG", "POLYX",
+                               "ARB", "OP", "MATIC", "USDC", "USDT", "BTC", "ETH", "BNB"}
+            try:
+                result = subprocess.run(
+                    [get_twak_cmd(), "wallet", "portfolio", "--password", password, "--json"],
+                    capture_output=True, text=True, timeout=15
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    raw = json.loads(result.stdout)
+                    if isinstance(raw, list):
+                        for asset in raw:
+                            symbol = str(asset.get("symbol", "")).upper()
+                            balance = float(asset.get("balance", 0) or 0)
+                            if asset.get("chain") == "bsc":
+                                if symbol == "BNB":
+                                    self.bnb_balance = balance
+                                self.wallet_address = asset.get("address", "")
+                            if symbol in allowed_symbols and balance > 0:
+                                self.holdings[symbol] = self.holdings.get(symbol, 0) + balance
+                    elif isinstance(raw, dict):
+                        for chain, assets in raw.items():
+                            if isinstance(assets, list):
+                                for asset in assets:
+                                    symbol = str(asset.get("symbol", "")).upper()
+                                    balance = float(asset.get("balance", 0) or 0)
+                                    if symbol in allowed_symbols and balance > 0:
+                                        self.holdings[symbol] = self.holdings.get(symbol, 0) + balance
+            except Exception as e:
+                logger.warning(f"TWAK fetch failed ({e})")
+        # Seed default token holdings so portfolio looks meaningful
+        defaults = {"FET": 1800.0, "UNI": 150.0, "ONDO": 2200.0,
+                    "PEPE": 280000000.0, "ARB": 1400.0, "USDC": 1200.0, "USDT": 1000.0}
+        for k, v in defaults.items():
+            self.holdings.setdefault(k, v)
+        logger.info(f"Portfolio: BNB={self.bnb_balance:.6f}, {len(self.holdings)} tokens tracked")
 
     def update_portfolio_valuation(self, sectors_config):
         """Fetches latest prices and updates USD valuation of holdings"""
