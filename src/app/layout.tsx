@@ -9,8 +9,8 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
-  title: "Daylight - Make your service business fun again",
-  description: "All-in-one software for modern service businesses: projects, clients, and billing, all in one place.",
+  title: "Narrative Rotator — Autonomous AI Trading Agent on BNB Chain",
+  description: "AI-powered narrative rotator scanning market sentiment across sectors and autonomously rotating portfolio via Trust Wallet Agent Kit. Built for BNB Hack 2026.",
 };
 
 import Web3ModalProvider from "@/context/Web3ModalProvider";
