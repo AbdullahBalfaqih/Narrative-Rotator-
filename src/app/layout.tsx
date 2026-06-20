@@ -11,6 +11,10 @@ const jost = Jost({
 export const metadata: Metadata = {
   title: "Narrative Rotator — Autonomous AI Trading Agent on BNB Chain",
   description: "AI-powered narrative rotator scanning market sentiment across sectors and autonomously rotating portfolio via Trust Wallet Agent Kit. Built for BNB Hack 2026.",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 import Web3ModalProvider from "@/context/Web3ModalProvider";
