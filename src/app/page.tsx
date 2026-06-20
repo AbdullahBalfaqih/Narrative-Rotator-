@@ -24,7 +24,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0c0a09]/75 backdrop-blur-md border-b border-stone-800/80">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <a href="#" className="font-sans text-2xl font-semibold text-stone-100 tracking-tight flex items-center gap-2">
-            <span className="w-3 h-3 bg-[#CDFC74] rounded-full inline-block"></span>
+            <img src="/icon.png" alt="Narrative Logo" className="w-8 h-8 object-contain" />
             Narrative
           </a>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-stone-400">

@@ -478,7 +478,7 @@ export default function Dashboard() {
               {isBackendOffline ? 'Offline' : isAgentActive ? 'Stop' : 'Start'}
             </button>
             <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-[100px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)]">
-              <img src="/extracted_icons/coin_46.png" alt="BNB" className="w-4 h-4 object-contain" />
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#F0B90B"><path d="M12 0L14.47 4.47 12 2.94 9.53 4.47zM16.88 6.12L21.18 8.59 18.71 10.12 14.41 7.65zM21.18 15.41L16.88 17.88 14.41 16.35 18.71 13.88zM12 21.06L9.53 19.53 12 18 14.47 19.53zM7.12 17.88L2.82 15.41 5.29 13.88 9.59 16.35zM2.82 8.59L7.12 6.12 9.59 7.65 5.29 10.12z" fill="#F0B90B"/><path d="M12 4.76L7.12 7.65 8.59 8.59 12 10.59 15.41 8.59 16.88 7.65zM12 13.41L8.59 11.41 7.12 12.35 12 15.24 16.88 12.35 15.41 11.41z" fill="#F0B90B"/></svg>
               <span className="text-white text-sm font-semibold">{bnbBalance.toFixed(4)}</span>
             </div>
             <button

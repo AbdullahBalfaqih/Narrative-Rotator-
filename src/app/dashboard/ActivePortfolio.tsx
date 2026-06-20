@@ -105,7 +105,7 @@ const ActivePortfolio: React.FC<ActivePortfolioProps> = ({ allocation, portfolio
         </div>
 
         {/* Card 03: Rwa (Ondo) */}
-        <div className="absolute top-[360px] left-[528px] w-[168px] h-[176px] z-20 blur-[3px] hover:blur-none transition-all duration-300">
+        <div className="absolute top-[360px] left-[528px] w-[168px] h-[176px] z-20 hover:scale-105 transition-transform">
           <div className="relative w-full h-full bg-gradient-to-br from-[#222325] to-[#151515] rounded-[10px] p-3 pt-4 flex flex-col items-center justify-start border border-stone-800 shadow-xl">
             <img src="/Allocation/images/v122_9427.png" alt="icon" className="w-[85px] h-[80px] object-contain mb-1" />
             <div className="text-white font-sans font-medium text-[15px] text-center leading-[18px]">
