@@ -325,6 +325,7 @@ def get_status():
         "total_trades_executed": state.total_trades_executed,
         "daily_profit": daily_profit,
         "max_drawdown_pct": max_drawdown,
+        "agent_drawdown_pct": agent.get_current_drawdown(),
         "monitored_pairs": monitored_pairs,
         "bsc_block": bsc_block or "—",
         "bnb_balance": portfolio_manager.bnb_balance,

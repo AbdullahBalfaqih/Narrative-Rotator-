@@ -11,6 +11,9 @@ class NarrativeRotatorAgent:
         self.executor = executor
         self.bnb_sdk = bnb_sdk
         self.sectors_config = {}
+        self._peak_value = 0.0
+        self._trough_value = float('inf')
+        self._current_drawdown = 0.0
         self.load_sectors()
 
     def load_sectors(self):
@@ -30,28 +33,35 @@ class NarrativeRotatorAgent:
                 "L2": {"tokens": ["ARB", "OP"]}
             }
 
+    def get_current_drawdown(self):
+        return self._current_drawdown
+
     def run_one_cycle(self, dry_run=False):
         logger.info("--- Starting Autonomous Rotation Cycle ---")
         
-        # 1. Update prices & evaluate current portfolio USD value
-        logger.info("Step 1: Fetching active market quotes & sentiment data...")
         self.portfolio.update_portfolio_valuation(self.sectors_config)
         current_value = self.portfolio.get_total_usd_value()
         current_allocation = self.portfolio.get_current_allocation_percentages()
         logger.info(f"Current Portfolio Valuation: ${current_value:.2f} USD")
         logger.info(f"Current Allocations: {current_allocation}")
 
-        # 2. Get real-time heat indexes for all sectors
-        logger.info("Step 2: Tracking sector heat rankings via CMC Agent Hub...")
+        # Track drawdown
+        if current_value > self._peak_value:
+            self._peak_value = current_value
+            self._trough_value = current_value
+        else:
+            self._trough_value = min(self._trough_value, current_value)
+        if self._peak_value > 0:
+            self._current_drawdown = round((self._peak_value - self._trough_value) / self._peak_value * 100, 1)
+        logger.info(f"Peak: ${self._peak_value:.2f}, Trough: ${self._trough_value:.2f}, Drawdown: {self._current_drawdown}%")
+
         sector_heats = self.tracker.track_all_sectors(self.sectors_config)
         logger.info(f"Active Sector heats: {sector_heats}")
 
-        # 3. Calculate target risk-adjusted allocations
-        logger.info("Step 3: Calculating target allocations in Decision Engine...")
-        target_allocation = self.decision.calculate_target_allocations(sector_heats, current_allocation)
+        target_allocation = self.decision.calculate_target_allocations(
+            sector_heats, current_allocation, self._current_drawdown
+        )
 
-        # 4. Detect rotations
-        logger.info("Step 4: Detecting portfolio rotation needs...")
         trigger_diff = self.tracker.thresholds.get("rotation_trigger_heat_diff", 15.0) / 100.0
         
         proposals = []
