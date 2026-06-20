@@ -317,37 +317,112 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FOOTER CTA */}
-      <section className="w-full max-w-[1240px] mx-auto px-6 py-20 relative z-20 text-center">
-        <h2 className="text-4xl md:text-6xl font-semibold text-stone-100 tracking-tight leading-[1.1] mb-6 max-w-[700px] mx-auto">
-          Ready to automate your crypto portfolio?
-        </h2>
-        <p className="text-stone-400 text-base md:text-lg max-w-[550px] mx-auto mb-10 font-light">
-          Join thousands of traders using AI-powered narrative rotation to capture emerging trends before they go mainstream.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <a href="/dashboard" className="bg-stone-100 text-stone-950 px-8 py-3.5 rounded-full font-medium hover:bg-stone-200 transition-all duration-300 shadow-lg">Launch Dashboard</a>
-          <a href="#" className="bg-stone-900 border border-stone-800 hover:border-stone-700 text-stone-200 px-8 py-3.5 rounded-full font-medium transition-all duration-300">Documentation</a>
-        </div>
-        <div className="mt-16 flex items-center justify-center">
-          <img src="/assets/footer_cta_mockup.png" alt="App Mockup" className="w-full max-w-[800px] h-auto object-contain" />
-        </div>
-      </section>
+      {/* FOOTER - CTA + Links */}
+      <footer className="w-full relative z-20 mt-20">
+        {/* CTA Section */}
+        <div className="relative overflow-hidden bg-[#0c0a09] w-full">
+          <div className="max-w-[1240px] mx-auto px-6 py-24 md:py-32 text-center relative">
+            {/* Floating decorative elements */}
+            <div className="absolute top-12 left-[10%] w-[108px] h-[108px] pointer-events-none hidden lg:block animate-bounce" style={{ animationDuration: '6s' }}>
+              <img src="/footer/images/v5_900.png" alt="" className="w-full h-full object-contain" />
+            </div>
+            <div className="absolute top-8 right-[8%] w-[35px] h-[35px] pointer-events-none hidden lg:block animate-pulse rounded-full" style={{ animationDuration: '8s', backgroundColor: 'rgba(219,252,116,1)' }}>
+            </div>
+            <div className="absolute bottom-16 right-[12%] w-[169px] h-[169px] pointer-events-none hidden lg:block animate-bounce" style={{ animationDuration: '5s' }}>
+              <img src="/footer/images/v5_907.png" alt="" className="w-full h-full object-contain" />
+            </div>
+            <div className="absolute bottom-8 left-[15%] w-[40px] h-[40px] pointer-events-none hidden lg:block" style={{ backgroundColor: 'rgba(250,198,251,1)' }}>
+            </div>
 
-      {/* FOOTER */}
-      <footer className="w-full max-w-[1240px] mx-auto px-6 py-12 relative z-20 border-t border-stone-800/60">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-[#CDFC74] rounded-full"></span>
-            <span className="text-stone-300 font-medium">Narrative</span>
+            <h2 className="font-sans text-4xl md:text-6xl font-semibold text-stone-100 tracking-tight leading-[1.1] mb-6 max-w-[780px] mx-auto" style={{ fontFamily: 'Urbanist, sans-serif' }}>
+              Streamline your trading strategy
+            </h2>
+            <p className="text-stone-400 text-base md:text-lg max-w-[584px] mx-auto mb-10 font-light font-sans">
+              Start using Narrative today and take your portfolio to the next level with autonomous AI-powered rotation.
+            </p>
+            <a
+              href="/dashboard"
+              className="inline-flex items-center gap-3 bg-stone-100 text-stone-950 px-6 py-3 rounded-full font-medium hover:bg-white transition-all duration-300 shadow-lg"
+            >
+              <span className="w-8 h-8 rounded-full bg-stone-950 flex items-center justify-center">
+                <svg className="w-4 h-4 text-stone-100" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </span>
+              Let's get started
+            </a>
           </div>
-          <div className="flex items-center gap-6 text-sm text-stone-500">
-            <a href="#" className="hover:text-stone-300">Privacy</a>
-            <a href="#" className="hover:text-stone-300">Terms</a>
-            <a href="#" className="hover:text-stone-300">Docs</a>
-            <a href="#" className="hover:text-stone-300">Support</a>
+        </div>
+
+        {/* Main Footer */}
+        <div className="border-t border-stone-800/60 bg-[#0c0a09]">
+          <div className="max-w-[1240px] mx-auto px-6 py-16">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+              {/* Logo + Description */}
+              <div className="col-span-2 md:col-span-1">
+                <div className="flex items-center gap-2 mb-4">
+                  <img src="/icon.png" alt="Narrative" className="w-8 h-8 object-contain" />
+                  <span className="text-stone-100 font-semibold text-lg">Narrative</span>
+                </div>
+                <p className="text-stone-500 text-sm leading-relaxed max-w-[200px]">
+                  AI-powered narrative rotator for autonomous crypto portfolio management on BNB Chain.
+                </p>
+              </div>
+
+              {/* Column 1 */}
+              <div>
+                <h4 className="text-stone-400 text-sm font-medium mb-5 uppercase tracking-wider">Product</h4>
+                <ul className="space-y-3">
+                  {['Dashboard', 'Live Monitor', 'API', 'Documentation'].map((item) => (
+                    <li key={item}>
+                      <a href="#" className="text-stone-300 text-sm hover:text-stone-100 transition-colors">{item}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Column 2 */}
+              <div>
+                <h4 className="text-stone-400 text-sm font-medium mb-5 uppercase tracking-wider">Resources</h4>
+                <ul className="space-y-3">
+                  {['Whitepaper', 'FAQ', 'Support', 'Status'].map((item) => (
+                    <li key={item}>
+                      <a href="#" className="text-stone-300 text-sm hover:text-stone-100 transition-colors">{item}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Column 3 */}
+              <div>
+                <h4 className="text-stone-400 text-sm font-medium mb-5 uppercase tracking-wider">Company</h4>
+                <ul className="space-y-3">
+                  {['About', 'Privacy', 'Terms', 'GitHub'].map((item) => (
+                    <li key={item}>
+                      <a href="#" className="text-stone-300 text-sm hover:text-stone-100 transition-colors">{item}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-stone-800/60 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                {/* Social icons */}
+                <a href="https://x.com/aqih0" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-stone-900 border border-stone-800 flex items-center justify-center hover:bg-stone-800 transition-colors">
+                  <svg className="w-4 h-4 text-stone-400" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </a>
+                <a href="https://github.com/AbdullahBalfaqih/Narrative-Rotator-" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-stone-900 border border-stone-800 flex items-center justify-center hover:bg-stone-800 transition-colors">
+                  <svg className="w-4 h-4 text-stone-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                </a>
+                <a href="https://github.com/AbdullahBalfaqih/Narrative-Rotator-" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-stone-900 border border-stone-800 flex items-center justify-center hover:bg-stone-800 transition-colors">
+                  <svg className="w-4 h-4 text-stone-400" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                </a>
+              </div>
+              <div className="text-xs text-stone-500 font-sans">2026 Narrative. All rights reserved.</div>
+            </div>
           </div>
-          <div className="text-xs text-stone-500">2026 Narrative. All rights reserved.</div>
         </div>
       </footer>
     </div>
