@@ -1,14 +1,34 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function LandingPage() {
   const [activeTab, setActiveTab] = useState('CRM');
+  const pageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.utils.toArray<HTMLElement>('.gsap-card').forEach((card) => {
+        gsap.fromTo(card,
+          { y: 60, opacity: 0 },
+          {
+            y: 0, opacity: 1, duration: 0.8, ease: 'power3.out',
+            scrollTrigger: { trigger: card, start: 'top 85%', toggleActions: 'play none none none' },
+          }
+        );
+      });
+    }, pageRef);
+    return () => ctx.revert();
+  }, []);
 
   const tabs = ['AI', 'Meme', 'RWA', 'L2', 'DeFi'];
 
   return (
-    <div className="font-sans text-stone-300 min-h-screen flex flex-col justify-between relative bg-[#0c0a09] overflow-x-hidden">
+    <div ref={pageRef} className="font-sans text-stone-300 min-h-screen flex flex-col justify-between relative bg-[#0c0a09] overflow-x-hidden">
       {/* Premium subtle grain overlay */}
       <div 
         className="absolute inset-0 pointer-events-none opacity-[0.02]"
@@ -121,7 +141,7 @@ export default function LandingPage() {
         {/* 3 Cards */}
         <div className="w-full bg-[#292524] rounded-[32px] p-6">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="bg-[#1c1917] rounded-2xl p-8 flex flex-col justify-between min-h-[380px] hover:border-stone-700 border border-transparent transition-all duration-300">
+            <div className="bg-[#1c1917] rounded-2xl p-8 flex flex-col justify-between min-h-[380px] hover:border-stone-700 border border-transparent transition-all duration-300 gsap-card">
               <div>
                 <div className="w-16 h-16 mb-8">
                   <img src="/assets/asset_1_591.png" alt="Real-Time Sentiment Icon" className="w-full h-full object-contain" />
@@ -133,7 +153,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="lg:col-span-2 bg-[#121212] rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between min-h-[380px] hover:border-stone-700 border border-transparent transition-all duration-300 overflow-hidden relative">
+            <div className="lg:col-span-2 bg-[#121212] rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between min-h-[380px] hover:border-stone-700 border border-transparent transition-all duration-300 overflow-hidden relative gsap-card">
               <div className="max-w-[220px] flex flex-col justify-between h-full z-10">
                 <div>
                   <div className="w-16 h-16 mb-8">
@@ -150,7 +170,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="bg-[#1c1917] rounded-2xl p-8 flex flex-col justify-between min-h-[380px] hover:border-stone-700 border border-transparent transition-all duration-300">
+            <div className="bg-[#1c1917] rounded-2xl p-8 flex flex-col justify-between min-h-[380px] hover:border-stone-700 border border-transparent transition-all duration-300 gsap-card">
               <div>
                 <div className="w-16 h-16 mb-8">
                   <img src="/assets/asset_1_624.png" alt="On-Chain Identity Icon" className="w-full h-full object-contain" />
@@ -172,7 +192,7 @@ export default function LandingPage() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-[1200px] mx-auto">
           {['Uniswap', 'Arbitrum', 'Chainlink', 'PancakeSwap', 'Aave', 'The Graph', 'Optimism', 'BNB Chain'].map((name, i) => (
-            <div key={i} className="bg-[#292524] rounded-2xl h-[74px] flex items-center justify-center border border-stone-800/80 hover:border-stone-700 transition-colors duration-200">
+            <div key={i} className="bg-[#292524] rounded-2xl h-[74px] flex items-center justify-center border border-stone-800/80 hover:border-stone-700 transition-colors duration-200 gsap-card">
               <span className="text-stone-400 font-sans text-xl font-bold tracking-tight opacity-80 hover:opacity-100 transition-opacity">{name}</span>
             </div>
           ))}
@@ -186,7 +206,7 @@ export default function LandingPage() {
         </div>
 
         {/* Feature 1 */}
-        <div className="bg-[#292524] rounded-[24px] p-8 md:p-12 flex flex-col lg:flex-row items-center justify-between gap-12 min-h-[580px] hover:border-stone-700 border border-transparent transition-all duration-300">
+        <div className="bg-[#292524] rounded-[24px] p-8 md:p-12 flex flex-col lg:flex-row items-center justify-between gap-12 min-h-[580px] hover:border-stone-700 border border-transparent transition-all duration-300 gsap-card">
           <div className="flex-1 flex flex-col justify-between h-full max-w-[540px]">
             <div>
               <h3 className="font-sans text-3xl md:text-4xl font-semibold text-stone-100 mb-6">Narrative Heat Tracking</h3>
@@ -214,7 +234,7 @@ export default function LandingPage() {
         </div>
 
         {/* Feature 2 */}
-        <div className="bg-[#292524] rounded-[24px] p-8 md:p-12 flex flex-col lg:flex-row items-center justify-between gap-12 min-h-[580px] hover:border-stone-700 border border-transparent transition-all duration-300">
+        <div className="bg-[#292524] rounded-[24px] p-8 md:p-12 flex flex-col lg:flex-row items-center justify-between gap-12 min-h-[580px] hover:border-stone-700 border border-transparent transition-all duration-300 gsap-card">
           <div className="flex-1 flex flex-col justify-between h-full max-w-[540px]">
             <div>
               <h3 className="font-sans text-3xl md:text-4xl font-semibold text-stone-100 mb-6">Automated Portfolio Rotation</h3>
@@ -242,7 +262,7 @@ export default function LandingPage() {
         </div>
 
         {/* Feature 3 */}
-        <div className="bg-[#292524] rounded-[24px] p-8 md:p-12 flex flex-col lg:flex-row items-center justify-between gap-12 min-h-[580px] hover:border-stone-700 border border-transparent transition-all duration-300">
+        <div className="bg-[#292524] rounded-[24px] p-8 md:p-12 flex flex-col lg:flex-row items-center justify-between gap-12 min-h-[580px] hover:border-stone-700 border border-transparent transition-all duration-300 gsap-card">
           <div className="flex-1 flex flex-col justify-between h-full max-w-[540px]">
             <div>
               <h3 className="font-sans text-3xl md:text-4xl font-semibold text-stone-100 mb-6">On-Chain Execution</h3>
@@ -285,7 +305,7 @@ export default function LandingPage() {
             { name: 'Michael Turner', role: 'Risk Analyst', avatar: '/assets/avatar_michael.png', text: 'Drawdown limits actually work. I sleep better knowing the agent stops trading when conditions turn.' },
             { name: 'Alexander Reed', role: 'Crypto Researcher', avatar: '/assets/avatar_alexander.png', text: 'The sector heat maps give me insights I never had access to before. Game changer for narrative analysis.' }
           ].map((t, i) => (
-            <div key={i} className="bg-[#292524] rounded-2xl p-6 border border-stone-800/80 hover:border-stone-700 transition-all duration-300">
+            <div key={i} className="bg-[#292524] rounded-2xl p-6 border border-stone-800/80 hover:border-stone-700 transition-all duration-300 gsap-card">
               <div className="flex items-center gap-3 mb-4">
                 <img src={t.avatar} alt={t.name} className="w-10 h-10 rounded-full object-cover" />
                 <div>
@@ -301,7 +321,7 @@ export default function LandingPage() {
 
       {/* INTEGRATIONS CTA */}
       <section className="w-full max-w-[1240px] mx-auto px-6 py-20 relative z-20">
-        <div className="bg-gradient-to-br from-stone-900 to-[#292524] rounded-[32px] p-8 md:p-16 border border-stone-800/60 overflow-hidden relative">
+        <div className="bg-gradient-to-br from-stone-900 to-[#292524] rounded-[32px] p-8 md:p-16 border border-stone-800/60 overflow-hidden relative gsap-card">
           <div className="flex flex-col lg:flex-row items-center gap-12 relative z-10">
             <div className="flex-1">
               <h2 className="text-3xl md:text-4xl font-semibold text-stone-100 mb-4">Seamless integration with your existing stack</h2>
@@ -320,7 +340,7 @@ export default function LandingPage() {
       {/* FOOTER - CTA + Links */}
       <footer className="w-full relative z-20 mt-20">
         {/* CTA Section */}
-        <div className="relative overflow-hidden bg-[#0c0a09] w-full">
+        <div className="relative overflow-hidden bg-[#0c0a09] w-full gsap-card">
           <div className="max-w-[1240px] mx-auto px-6 py-24 md:py-32 text-center relative">
             {/* Floating decorative elements */}
             <div className="absolute top-12 left-[10%] w-[108px] h-[108px] pointer-events-none hidden lg:block animate-bounce" style={{ animationDuration: '6s' }}>
@@ -334,7 +354,7 @@ export default function LandingPage() {
             <div className="absolute bottom-8 left-[15%] w-[40px] h-[40px] pointer-events-none hidden lg:block" style={{ backgroundColor: 'rgba(250,198,251,1)' }}>
             </div>
 
-            <h2 className="font-sans text-4xl md:text-6xl font-semibold text-stone-100 tracking-tight leading-[1.1] mb-6 max-w-[780px] mx-auto" style={{ fontFamily: 'Urbanist, sans-serif' }}>
+            <h2 className="font-sans text-4xl md:text-6xl font-semibold text-stone-100 tracking-tight leading-[1.1] mb-6 max-w-[780px] mx-auto">
               Streamline your trading strategy
             </h2>
             <p className="text-stone-400 text-base md:text-lg max-w-[584px] mx-auto mb-10 font-light font-sans">
