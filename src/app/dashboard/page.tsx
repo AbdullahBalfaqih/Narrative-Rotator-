@@ -12,24 +12,21 @@ import DetailsSection from './DetailsSection';
 const autonomousGuardrailsColumns = [
   {
     icon: '/details/images/v127_18.png',
-    iconSize: 'w-[240px] h-[240px]',
-    iconContainerClass: 'h-[240px]',
+    iconClass: 'object-cover object-center scale-[2.2]',
     title: 'Max size per trade',
     subtitle: '15%',
     bullets: ['Max allocation rotation shift per cycle']
   },
   {
     icon: '/details/images/v127_59.png',
-    iconSize: 'w-[240px] h-[240px]',
-    iconContainerClass: 'h-[240px]',
+    iconClass: 'object-cover object-center scale-[2.2]',
     title: 'Daily drawdown limit',
     subtitle: '5%',
     bullets: ['Daily risk loss cap before agent sleeps']
   },
   {
     icon: '/details/images/v127_100.png',
-    iconSize: 'w-[240px] h-[240px]',
-    iconContainerClass: 'h-[240px]',
+    iconClass: 'object-cover object-center scale-[2.2]',
     title: 'Slippage protection',
     subtitle: '0.5%',
     bullets: ['Maximum swap slippage protection setting']
@@ -139,6 +136,35 @@ export default function Dashboard() {
   // Trade approval state
   const [pendingTrades, setPendingTrades] = useState<any[]>([]);
   const [autoTrade, setAutoTrade] = useState(false);
+
+  const scrollToServices = () => {
+    const target = document.getElementById('services');
+    if (!target) return;
+    const targetPosition = target.getBoundingClientRect().top + window.scrollY - 100;
+    const startPosition = window.scrollY;
+    const distance = targetPosition - startPosition;
+    const duration = 1200; // 1.2 seconds for a luxurious smooth motion
+    let start: number | null = null;
+
+    const animation = (currentTime: number) => {
+      if (start === null) start = currentTime;
+      const timeElapsed = currentTime - start;
+      const progress = Math.min(timeElapsed / duration, 1);
+      
+      // Easing function (easeInOutCubic)
+      const ease = progress < 0.5 
+        ? 4 * progress * progress * progress 
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+        
+      window.scrollTo(0, startPosition + distance * ease);
+      
+      if (timeElapsed < duration) {
+        requestAnimationFrame(animation);
+      }
+    };
+    
+    requestAnimationFrame(animation);
+  };
   const [confirmTrade, setConfirmTrade] = useState<any>(null);
 
   // Webhook / Inter-Agent state
@@ -568,17 +594,20 @@ export default function Dashboard() {
               </button>
             </div>
             <div className="space-y-4">
-              {Object.entries(settings).map(([key, val]) => (
-                <div key={key}>
-                  <label className="text-stone-400 text-xs font-mono block mb-1">{key}</label>
-                  <input
-                    type="text"
-                    value={val}
-                    onChange={(e) => setSettings(prev => ({...prev, [key]: e.target.value}))}
-                    className="w-full bg-[#191A1B] text-white text-sm rounded-lg px-4 py-2.5 border border-stone-700 outline-none focus:border-[#CDFC74] transition-colors font-mono"
-                  />
-                </div>
-              ))}
+              {Object.entries(settings).map(([key, val]) => {
+                const isSecret = key.includes('KEY') || key.includes('PASSWORD') || key.includes('SECRET');
+                return (
+                  <div key={key}>
+                    <label className="text-stone-400 text-xs font-mono block mb-1">{key}</label>
+                    <input
+                      type={isSecret ? 'password' : 'text'}
+                      placeholder={isSecret ? '••••••••••••••••' : val}
+                      onChange={(e) => setSettings(prev => ({...prev, [key]: e.target.value}))}
+                      className="w-full bg-[#191A1B] text-white text-sm rounded-lg px-4 py-2.5 border border-stone-700 outline-none focus:border-[#CDFC74] transition-colors font-mono placeholder:text-stone-600"
+                    />
+                  </div>
+                );
+              })}
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={async () => {
@@ -1205,7 +1234,7 @@ export default function Dashboard() {
                       c.symbol.toLowerCase().includes(searchQuery.toLowerCase())
                     )
                     .map((coin) => (
-                      <div key={coin.symbol} onClick={() => { setSelectedCoin(coin); document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' }); }} className="bg-white rounded-2xl p-6 flex flex-col justify-between h-[152px] relative border border-stone-100 hover:border-[#CDFC74]/50 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-md">
+                      <div key={coin.symbol} onClick={() => { setSelectedCoin(coin); scrollToServices(); }} className="bg-white rounded-2xl p-6 flex flex-col justify-between h-[152px] relative border border-stone-100 hover:border-[#CDFC74]/50 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-md">
                         <div className="w-8 h-8 flex-shrink-0">
                           {coin.icon ? (
                             <img src={coin.icon} alt={coin.name} className="w-8 h-8 object-contain" />
@@ -1237,7 +1266,7 @@ export default function Dashboard() {
                       .slice(0, 10)
                       .filter(c => activeFilter === 'All' || c.filter === activeFilter)
                       .map((coin) => (
-                        <div key={coin.symbol} onClick={() => { setSelectedCoin(coin); document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' }); }} className="bg-white rounded-2xl p-6 flex flex-col justify-between h-[152px] relative border border-stone-100 hover:border-[#CDFC74]/50 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-md">
+                        <div key={coin.symbol} onClick={() => { setSelectedCoin(coin); scrollToServices(); }} className="bg-white rounded-2xl p-6 flex flex-col justify-between h-[152px] relative border border-stone-100 hover:border-[#CDFC74]/50 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-md">
                           <div className="w-8 h-8 flex-shrink-0">
                             {coin.icon ? (
                               <img src={coin.icon} alt={coin.name} className="w-8 h-8 object-contain" />
@@ -1268,7 +1297,7 @@ export default function Dashboard() {
                       .slice(10)
                       .filter(c => activeFilter === 'All' || c.filter === activeFilter)
                       .map((coin) => (
-                        <div key={coin.symbol} onClick={() => { setSelectedCoin(coin); document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' }); }} className="bg-[#191A1B] rounded-2xl p-6 flex flex-col justify-between h-[152px] relative border border-stone-800 hover:border-[#CDFC74]/50 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-[0_8px_30px_rgba(205,252,116,0.1)]">
+                        <div key={coin.symbol} onClick={() => { setSelectedCoin(coin); scrollToServices(); }} className="bg-[#191A1B] rounded-2xl p-6 flex flex-col justify-between h-[152px] relative border border-stone-800 hover:border-[#CDFC74]/50 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-[0_8px_30px_rgba(205,252,116,0.1)]">
                           <div className="w-8 h-8 flex-shrink-0">
                             {coin.icon ? (
                               <img src={coin.icon} alt={coin.name} className="w-8 h-8 object-contain" />
