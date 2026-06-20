@@ -447,67 +447,82 @@ export default function Dashboard() {
       {/* ============================================= */}
       {/* Navigation Header */}
       {/* ============================================= */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4">
-        <div className="flex max-w-[928px] w-full px-4 py-4 justify-between items-center rounded-[100px] bg-[rgba(20,20,20,0.75)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] shadow-sm">
-          <a href="/" className="flex justify-center items-center gap-2 shrink-0">
-            <img
-              src="/icon.png"
-              alt="Narrative Logo"
-              className="w-8 h-8 object-contain"
-            />
-            <p className="text-white font-medium text-xl leading-6">Narrative</p>
+      <nav className="fixed top-8 left-0 right-0 z-50 px-6 md:px-8 pointer-events-none">
+        <div className="max-w-[1400px] mx-auto flex items-center justify-between pointer-events-auto">
+          {/* Logo */}
+          <a href="/" className="font-sans text-2xl font-semibold text-stone-100 tracking-tight flex items-center gap-2">
+            <img src="/icon.png" alt="Narrative Logo" className="w-8 h-8 object-contain" />
+            Narrative
           </a>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setShowSettings(true)} className="flex py-2.5 px-4 justify-center items-center rounded-[100px] text-[rgba(255,255,255,0.8)] text-base hover:text-white hover:bg-[rgba(255,255,255,0.1)] transition-colors">
+
+          {/* Links and Actions (Central Box) */}
+          <div className="hidden lg:flex items-center bg-[#1c1917] border border-stone-800/80 rounded-xl px-2 py-2 shadow-xl backdrop-blur-md text-sm font-medium text-stone-400">
+            <button onClick={() => setShowSettings(true)} className="px-5 py-2 hover:text-stone-100 transition-colors">
               Settings
             </button>
-            <button onClick={() => setShowAgents(true)} className="flex py-2.5 px-4 justify-center items-center rounded-[100px] text-[rgba(255,255,255,0.8)] text-base hover:text-white hover:bg-[rgba(255,255,255,0.1)] transition-colors">
+            
+            <div className="w-px h-5 bg-stone-800 mx-1"></div>
+            
+            <button onClick={() => setShowAgents(true)} className="px-5 py-2 hover:text-stone-100 transition-colors">
               Agents
             </button>
-          </div>
-          <div className="flex items-center gap-3">
+            
+            <div className="w-px h-5 bg-stone-800 mx-2"></div>
+
             <button
               onClick={toggleAgent}
               disabled={isBackendOffline}
-              className={`px-4 py-2 rounded-[100px] font-bold text-[14px] transition-all duration-300 border ${
+              className={`px-6 py-2 rounded-lg transition-all duration-300 font-semibold shadow-sm ${
                 isBackendOffline
-                  ? 'bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed'
-                  : 'bg-black text-white border-stone-800 hover:bg-stone-900'
+                  ? 'bg-stone-900 text-stone-500 cursor-not-allowed border border-stone-800'
+                  : isAgentActive
+                    ? 'bg-stone-100 text-stone-950 hover:bg-stone-200'
+                    : 'bg-black text-white border border-stone-800 hover:bg-stone-900'
               }`}
             >
               {isBackendOffline ? 'Offline' : isAgentActive ? 'Stop' : 'Start'}
             </button>
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-[100px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)]">
+            
+            <div className="w-px h-5 bg-stone-800 mx-2"></div>
+            
+            <div className="flex items-center gap-2 px-3 py-2">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#F0B90B"><path d="M12 0L14.47 4.47 12 2.94 9.53 4.47zM16.88 6.12L21.18 8.59 18.71 10.12 14.41 7.65zM21.18 15.41L16.88 17.88 14.41 16.35 18.71 13.88zM12 21.06L9.53 19.53 12 18 14.47 19.53zM7.12 17.88L2.82 15.41 5.29 13.88 9.59 16.35zM2.82 8.59L7.12 6.12 9.59 7.65 5.29 10.12z" fill="#F0B90B"/><path d="M12 4.76L7.12 7.65 8.59 8.59 12 10.59 15.41 8.59 16.88 7.65zM12 13.41L8.59 11.41 7.12 12.35 12 15.24 16.88 12.35 15.41 11.41z" fill="#F0B90B"/></svg>
-              <span className="text-white text-sm font-semibold">{bnbBalance.toFixed(4)}</span>
+              <span className="text-stone-300 font-semibold">{bnbBalance.toFixed(4)}</span>
             </div>
+
+            <div className="w-px h-5 bg-stone-800 mx-2"></div>
+
             <button
               onClick={toggleAutoTrade}
               disabled={isBackendOffline}
-              className={`px-4 py-2 rounded-[100px] font-bold text-[14px] transition-all duration-300 border hidden md:block ${
+              className={`px-6 py-2 rounded-lg transition-all duration-300 font-semibold shadow-sm ${
                 isBackendOffline
-                  ? 'bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed'
+                  ? 'bg-stone-900 text-stone-500 cursor-not-allowed border border-stone-800'
                   : autoTrade
-                    ? 'bg-[#cfef00] text-[#1D1F13] border-[#cfef00] hover:bg-[#c4e201]'
-                    : 'bg-black text-white border-stone-800 hover:bg-stone-900'
+                    ? 'bg-[#CDFC74] text-stone-950 hover:bg-white'
+                    : 'bg-black text-white border border-stone-800 hover:bg-stone-900'
               }`}
             >
               {autoTrade ? 'Auto Trade' : 'Manual'}
             </button>
+          </div>
+
+          {/* Right Actions */}
+          <div className="flex items-center gap-3 text-sm font-medium">
             <div className="relative">
               {isConnected ? (
                 <>
                   <button
                     onClick={() => setShowDisconnect((prev) => !prev)}
-                    className="flex items-center px-4 py-2 rounded-[100px] bg-[#cfef00] border border-transparent text-[#1D1F13] text-[14px] font-bold cursor-pointer transition-all duration-200 hover:bg-[#c4e201] active:scale-95"
+                    className="flex items-center px-6 py-2.5 rounded-lg bg-[#CDFC74] text-stone-950 font-semibold cursor-pointer transition-all duration-200 hover:bg-white shadow-lg active:scale-95"
                   >
                     <span>{address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}</span>
                   </button>
                   {showDisconnect && (
-                    <div className="absolute right-0 top-full mt-2 bg-[#191A1B] border border-[rgba(255,255,255,0.1)] rounded-lg overflow-hidden shadow-xl z-50 min-w-[120px]">
+                    <div className="absolute right-0 top-full mt-2 bg-[#1c1917] border border-stone-800/80 rounded-lg overflow-hidden shadow-xl z-50 min-w-[120px]">
                       <button
                         onClick={() => { disconnect(); setShowDisconnect(false); }}
-                        className="w-full px-4 py-2.5 text-white text-sm text-left hover:bg-white/5 transition-colors"
+                        className="w-full px-4 py-2.5 text-stone-300 text-sm text-left hover:text-white hover:bg-stone-800 transition-colors"
                       >
                         Disconnect
                       </button>
@@ -517,20 +532,20 @@ export default function Dashboard() {
               ) : (
                 <button
                   onClick={(e) => { e.preventDefault(); open(); }}
-                  className="flex items-center px-4 py-2 rounded-[100px] bg-[#cfef00] border border-transparent text-[#1D1F13] text-[14px] font-bold cursor-pointer transition-all duration-200 hover:bg-[#c4e201] active:scale-95 group"
+                  className="flex items-center px-6 py-2.5 rounded-lg bg-[#CDFC74] text-stone-950 font-semibold cursor-pointer transition-all duration-200 hover:bg-white shadow-lg active:scale-95 group"
                 >
                   <span>Connect Wallet</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 74 74"
-                    height="28"
-                    width="28"
+                    height="20"
+                    width="20"
                     className="ml-2 transition-transform duration-300 ease-in-out group-hover:translate-x-[4px]"
                   >
-                    <circle strokeWidth="3" stroke="black" r="35.5" cy="37" cx="37"></circle>
+                    <circle strokeWidth="3" stroke="currentColor" r="35.5" cy="37" cx="37"></circle>
                     <path
-                      fill="black"
+                      fill="currentColor"
                       d="M25 35.5C24.1716 35.5 23.5 36.1716 23.5 37C23.5 37.8284 24.1716 38.5 25 38.5V35.5ZM49.0607 38.0607C49.6464 37.4749 49.6464 36.5251 49.0607 35.9393L39.5147 26.3934C38.9289 25.8076 37.9792 25.8076 37.3934 26.3934C36.8076 26.9792 36.8076 27.9289 37.3934 28.5147L45.8787 37L37.3934 45.4853C36.8076 46.0711 36.8076 47.0208 37.3934 47.6066C37.9792 48.1924 38.9289 48.1924 39.5147 47.6066L49.0607 38.0607ZM25 38.5L48 38.5V35.5L25 35.5V38.5Z"
                     ></path>
                   </svg>

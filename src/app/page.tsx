@@ -41,24 +41,29 @@ export default function LandingPage() {
       <div className="absolute top-[300px] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#CDFC74]/5 rounded-full blur-[140px] pointer-events-none" />
 
       {/* Navigation Header */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0c0a09]/75 backdrop-blur-md border-b border-stone-800/80">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <nav className="fixed top-8 left-0 right-0 z-50 px-6 md:px-8 pointer-events-none">
+        <div className="max-w-[1400px] mx-auto flex items-center justify-between pointer-events-auto">
+          {/* Logo */}
           <a href="#" className="font-sans text-2xl font-semibold text-stone-100 tracking-tight flex items-center gap-2">
             <img src="/icon.png" alt="Narrative Logo" className="w-8 h-8 object-contain" />
             Narrative
           </a>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-stone-400">
-            <a href="#product" className="hover:text-stone-100">Product</a>
+
+          {/* Links (Central Box) */}
+          <div className="hidden lg:flex items-center gap-8 bg-[#1c1917] border border-stone-800/80 rounded-xl px-8 py-3.5 shadow-xl backdrop-blur-md text-sm font-medium text-stone-400">
+            <a href="#product" className="hover:text-stone-100 transition-colors">Product</a>
             <a href="/dashboard" className="text-[#CDFC74] hover:text-white transition-colors">Rotator Dashboard</a>
-            <a href="#" className="hover:text-stone-100">Case studies</a>
-            <a href="#" className="hover:text-stone-100">Pricing</a>
-            <a href="#" className="hover:text-stone-100">Blog</a>
-            <a href="#" className="hover:text-stone-100">About</a>
-            <a href="#" className="hover:text-stone-100">Contact</a>
+            <a href="#" className="hover:text-stone-100 transition-colors">Case studies</a>
+            <a href="#" className="hover:text-stone-100 transition-colors">Pricing</a>
+            <a href="#" className="hover:text-stone-100 transition-colors">Blog</a>
+            <a href="#" className="hover:text-stone-100 transition-colors">About</a>
+            <a href="#" className="hover:text-stone-100 transition-colors">Contact</a>
           </div>
-          <div className="hidden md:flex items-center gap-4 text-sm font-medium">
-            <a href="#" className="text-stone-400 hover:text-stone-100">Login</a>
-            <a href="/dashboard" className="bg-[#CDFC74] text-stone-950 px-5 py-2.5 rounded-full hover:bg-white transition-all duration-300 font-semibold">
+
+          {/* Right Actions */}
+          <div className="flex items-center gap-6 text-sm font-medium">
+            <a href="#" className="text-stone-400 hover:text-stone-100 hidden md:block transition-colors">Login</a>
+            <a href="/dashboard" className="bg-[#CDFC74] text-stone-950 px-6 py-3 rounded-lg hover:bg-white transition-all duration-300 font-semibold shadow-lg">
               Launch App
             </a>
           </div>
@@ -66,7 +71,7 @@ export default function LandingPage() {
       </nav>
 
       {/* HERO SECTION */}
-      <header className="w-full max-w-[1240px] h-auto min-h-[600px] mx-auto px-6 relative flex flex-col items-center justify-center text-center select-none pt-40 pb-20">
+      <header className="w-full max-w-[1240px] h-auto min-h-[900px] mx-auto px-6 relative flex flex-col items-center justify-center text-center select-none pt-[220px] pb-32">
         <div className="max-w-[780px] z-20 flex flex-col items-center justify-center">
           <div className="inline-flex items-center gap-2 bg-stone-900 border border-stone-800 rounded-full px-4 py-1.5 text-xs text-stone-400 mb-8 shadow-inner animate-pulse">
             <div className="flex text-amber-400">★★★★★</div>
@@ -92,19 +97,24 @@ export default function LandingPage() {
         </div>
 
         {/* Floating characters */}
-        <div className="absolute w-[140px] h-[140px] pointer-events-none hidden lg:block animate-bounce" style={{ left: '159.4px', top: '61px', animationDuration: '6s' }}>
-          <img src="/assets/character_lottie_1.png" alt="Character" className="w-full h-full object-contain" />
+        <div className="absolute w-[140px] h-[140px] pointer-events-none hidden lg:flex items-center justify-center animate-bounce" style={{ left: '159.4px', top: '131px', animationDuration: '6s' }}>
+          <img src="/assets/character_lottie_1.png" alt="Character" className="w-full h-full object-contain absolute inset-0" />
+          <svg className="w-14 h-14 relative z-10 text-[#42500c] animate-face-float" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 10 Q7.5 7 10 10" />
+            <path d="M14 10 Q16.5 7 19 10" />
+            <path d="M8.5 15 Q12 18.5 15.5 15" />
+          </svg>
         </div>
-        <div className="absolute w-[56px] h-[56px] pointer-events-none hidden lg:block animate-pulse" style={{ left: '659.16px', top: '0px', animationDuration: '8s' }}>
+        <div className="absolute w-[56px] h-[56px] pointer-events-none hidden lg:block animate-pulse" style={{ left: '659.16px', top: '20px', animationDuration: '8s' }}>
           <img src="/assets/character_1_82.png" alt="Character" className="w-full h-full object-contain" />
         </div>
-        <div className="absolute w-[169px] h-[169px] pointer-events-none hidden lg:block animate-bounce" style={{ left: '985px', top: '119.5px', animationDuration: '5s' }}>
+        <div className="absolute w-[169px] h-[169px] pointer-events-none hidden lg:block animate-bounce" style={{ left: '985px', top: '159.5px', animationDuration: '5s' }}>
           <img src="/assets/character_1_42.png" alt="Character" className="w-full h-full object-contain" />
         </div>
-        <div className="absolute w-[178px] h-[235px] pointer-events-none hidden lg:block animate-pulse" style={{ left: '893.7px', top: '407.5px', animationDuration: '7s' }}>
+        <div className="absolute w-[178px] h-[235px] pointer-events-none hidden lg:block animate-pulse" style={{ left: '893.7px', top: '507.5px', animationDuration: '7s' }}>
           <img src="/assets/character_1_39.png" alt="Character" className="w-full h-full object-contain" />
         </div>
-        <div className="absolute w-[73px] h-[73px] pointer-events-none hidden lg:block animate-bounce" style={{ left: '313.8px', top: '468.7px', animationDuration: '5.5s' }}>
+        <div className="absolute w-[73px] h-[73px] pointer-events-none hidden lg:block animate-bounce" style={{ left: '313.8px', top: '588.7px', animationDuration: '5.5s' }}>
           <img src="/assets/character_1_85.png" alt="Character" className="w-full h-full object-contain" />
         </div>
       </header>
@@ -321,6 +331,22 @@ export default function LandingPage() {
 
       {/* INTEGRATIONS CTA */}
       <section className="w-full max-w-[1240px] mx-auto px-6 py-20 relative z-20">
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes rock-motion {
+            0%, 100% { transform: rotate(15deg); }
+            50% { transform: rotate(-15deg); }
+          }
+          .animate-rock {
+            animation: rock-motion 4s ease-in-out infinite;
+          }
+          @keyframes face-float {
+            0%, 100% { transform: translateY(-4px); }
+            50% { transform: translateY(4px); }
+          }
+          .animate-face-float {
+            animation: face-float 3s ease-in-out infinite;
+          }
+        `}} />
         <div className="bg-gradient-to-br from-stone-900 to-[#292524] rounded-[32px] p-8 md:p-16 border border-stone-800/60 overflow-hidden relative gsap-card">
           <div className="flex flex-col lg:flex-row items-center gap-12 relative z-10">
             <div className="flex-1">
@@ -331,7 +357,14 @@ export default function LandingPage() {
               <a href="/dashboard" className="inline-block bg-[#CDFC74] text-stone-950 px-8 py-3.5 rounded-full font-medium hover:bg-white transition-all duration-300 shadow-lg">Get Started Free</a>
             </div>
             <div className="flex-1 flex items-center justify-center">
-              <img src="/assets/cta_center_lottie.png" alt="Integration Graphic" className="w-full max-w-[400px] h-auto object-contain" />
+              <div className="relative flex items-center justify-center w-full max-w-[360px] aspect-square">
+                <img src="/assets/cta_center_lottie.png" alt="Integration Graphic" className="absolute inset-0 w-full h-full object-contain animate-rock" />
+                <svg className="absolute w-[120px] h-[120px] z-10 text-[#42500c] animate-face-float" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 10 Q7.5 7 10 10" />
+                  <path d="M14 10 Q16.5 7 19 10" />
+                  <path d="M8.5 15 Q12 18.5 15.5 15" />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
