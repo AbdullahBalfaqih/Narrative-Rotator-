@@ -16,12 +16,12 @@ class PortfolioManager:
         self._sync_from_wallet()
 
     def _sync_from_wallet(self):
-        """Fetches BNB balance from TWAK, then seeds default token holdings for demo."""
+        """Fetches BNB balance and token holdings from TWAK on BSC, seeds defaults for demo."""
         password = os.getenv("TWAK_WALLET_PASSWORD")
         if password:
-            allowed_symbols = {"FET", "RNDR", "TAO", "NEAR", "UNI", "AAVE", "CAKE",
-                               "DOGE", "PEPE", "SHIB", "ONDO", "CFG", "POLYX",
-                               "ARB", "OP", "MATIC", "USDC", "USDT", "BTC", "ETH", "BNB"}
+            allowed_symbols = {"USDC", "USDT", "WBNB", "CAKE", "BUSD", "XRP", "DOGE", "DOT",
+                               "UNI", "AAVE", "ONDO", "PEPE", "ARB", "OP", "FET", "RNDR",
+                               "BNB", "BTC", "ETH"}
             try:
                 result = subprocess.run(
                     [get_twak_cmd(), "wallet", "portfolio", "--password", password, "--json"],
@@ -37,8 +37,8 @@ class PortfolioManager:
                                 if symbol == "BNB":
                                     self.bnb_balance = balance
                                 self.wallet_address = asset.get("address", "")
-                            if symbol in allowed_symbols and balance > 0:
-                                self.holdings[symbol] = self.holdings.get(symbol, 0) + balance
+                                if symbol in allowed_symbols and balance > 0:
+                                    self.holdings[symbol] = self.holdings.get(symbol, 0) + balance
                     elif isinstance(raw, dict):
                         for chain, assets in raw.items():
                             if isinstance(assets, list):

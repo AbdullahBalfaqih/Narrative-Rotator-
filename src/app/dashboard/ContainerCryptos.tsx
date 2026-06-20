@@ -45,31 +45,33 @@ const DoughnutChart = ({ data, size = 200, strokeWidth = 40 }: { data: any[], si
   );
 };
 
-const funData = [
-  { label: 'Contingency', value: 70, color: '#d6f966' },
-  { label: 'Investor', value: 30, color: '#136f84' },
-  { label: 'Legal & Regulation', value: 10, color: '#44a08d' },
+const fundData = [
+  { label: 'Development & AI R&D', value: 50, color: '#d6f966' },
+  { label: 'Marketing & BD', value: 25, color: '#136f84' },
+  { label: 'Operations & Legal', value: 15, color: '#44a08d' },
+  { label: 'Liquidity Provision', value: 10, color: '#bdec32' },
 ];
 
 const tokenData = [
-  { label: 'Business Development', value: 10, color: '#d6f966' },
-  { label: 'Poland', value: 8, color: '#136f84' },
-  { label: 'Czech Republic', value: 15, color: '#44a08d' },
-  { label: 'Advisors', value: 20, color: '#bdec32' },
-  { label: 'Founders', value: 8, color: '#0f5869' },
+  { label: 'Ecosystem & Rewards', value: 40, color: '#d6f966' },
+  { label: 'Investors & Public', value: 30, color: '#136f84' },
+  { label: 'Team & Advisors', value: 20, color: '#44a08d' },
+  { label: 'Liquidity & Exchange', value: 10, color: '#bdec32' },
 ];
 
-const ContainerCryptos = () => {
-  const [soldTokens, setSoldTokens] = useState(6523);
-  const [cryptoRate, setCryptoRate] = useState(0.00012);
-  const [usdLimit, setUsdLimit] = useState(30000000);
+import { type Coin } from './coinsData';
+
+const ContainerCryptos = ({ selectedCoin }: { selectedCoin: Coin | null }) => {
+  const [soldTokens, setSoldTokens] = useState(1542300);
+  const [cryptoRate, setCryptoRate] = useState(0.000021);
+  const [usdLimit, setUsdLimit] = useState(5000000);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setSoldTokens(prev => prev + Math.floor(Math.random() * 5) + 1);
+      setSoldTokens(prev => prev + Math.floor(Math.random() * 50) + 10);
       setCryptoRate(prev => {
-        const fluctuation = (Math.random() - 0.5) * 0.000002;
-        return Math.max(0.00010, prev + fluctuation);
+        const fluctuation = (Math.random() - 0.5) * 0.0000005;
+        return Math.max(0.000015, prev + fluctuation);
       });
       setUsdLimit(prev => prev + Math.floor(Math.random() * 150));
     }, 2500);
@@ -91,8 +93,8 @@ const ContainerCryptos = () => {
                 <div className="flex flex-col items-start w-[7.875rem] name_ text-white font-sans text-xl leading-[1.875rem] font-medium">
                   Name:
                 </div>
-                <div className="flex flex-col items-start cryption text-stone-400 font-sans text-xl leading-[1.875rem]">
-                  Cryption
+                <div className="flex flex-col items-start text-[#e1f076] font-sans text-xl leading-[1.875rem] font-bold">
+                  {selectedCoin ? `${selectedCoin.name} (${selectedCoin.symbol})` : 'Narrative (NARR)'}
                 </div>
               </div>
               <div className="flex items-center gap-4 sm:gap-10 w-full">
@@ -108,7 +110,7 @@ const ContainerCryptos = () => {
                   Soft cap:
                 </div>
                 <div className="flex flex-col items-start val-28m text-stone-400 font-sans text-xl leading-[1.875rem]">
-                  28,000,000 USD
+                  1,500,000 USD
                 </div>
               </div>
               <div className="flex items-center gap-4 sm:gap-10 w-full">
@@ -116,7 +118,7 @@ const ContainerCryptos = () => {
                   Exchange:
                 </div>
                 <div className="flex flex-col items-start val-1eth text-stone-400 font-sans text-xl leading-[1.875rem]">
-                  1ETH = 2,700 CRN
+                  1 ETH = 50,000 {selectedCoin ? selectedCoin.symbol : 'NARR'}
                 </div>
               </div>
             </div>
@@ -126,7 +128,7 @@ const ContainerCryptos = () => {
                   Currency:
                 </div>
                 <div className="flex flex-col items-start eth__btc text-stone-400 font-sans text-xl leading-[1.875rem]">
-                  ETH, BTC
+                  ETH, USDT, USDC
                 </div>
               </div>
               <div className="flex items-center gap-4 sm:gap-10 w-full">
@@ -134,7 +136,7 @@ const ContainerCryptos = () => {
                   Min purchase:
                 </div>
                 <div className="flex flex-col items-start val-0-1eth text-stone-400 font-sans text-xl leading-[1.875rem]">
-                  0.1ETH/240 CRN 
+                  0.05 ETH / 2,500 {selectedCoin ? selectedCoin.symbol : 'NARR'}
                 </div>
               </div>
               <div className="flex items-center gap-4 sm:gap-10 w-full">
@@ -142,7 +144,7 @@ const ContainerCryptos = () => {
                   Starts:
                 </div>
                 <div className="flex flex-col items-start december_4__9_00_am_ text-stone-400 font-sans text-xl leading-[1.875rem]">
-                  December 4 (9:00 AM)
+                  August 15 (12:00 PM UTC)
                 </div>
               </div>
               <div className="flex items-center gap-4 sm:gap-10 w-full">
@@ -150,7 +152,7 @@ const ContainerCryptos = () => {
                   Ends:
                 </div>
                 <div className="flex flex-col items-start february_27__11_59_pm_ text-stone-400 font-sans text-xl leading-[1.875rem]">
-                  February 27 (11:59 PM)
+                  September 30 (11:59 PM UTC)
                 </div>
               </div>
             </div>
@@ -173,7 +175,7 @@ const ContainerCryptos = () => {
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#e1f076] animate-pulse"></span>
                 <div className="sold_cro_token text-white font-sans text-lg md:text-xl leading-6 font-medium">
-                  Sold CRO token
+                  Sold {selectedCoin ? selectedCoin.symbol : 'NARR'} tokens
                 </div>
               </div>
               <div className="val-6523 text-[#e1f076] text-center font-sans text-3xl md:text-[2.2rem] font-bold leading-none mt-2 transition-all duration-300">
@@ -197,7 +199,7 @@ const ContainerCryptos = () => {
           </div>
           
           <div className="flex flex-col items-center w-full val-1-cryptos text-white text-center font-sans text-2xl sm:text-[2.5rem] font-bold leading-10 sm:leading-[48px] mt-8 xl:mt-auto relative z-20 transition-all duration-300">
-            1 CRYPTOS = {cryptoRate.toFixed(6)} BTC
+            1 {selectedCoin ? selectedCoin.symbol : 'NARR'} = {cryptoRate.toFixed(6)} BTC
           </div>
         </div>
       </div>
@@ -205,36 +207,26 @@ const ContainerCryptos = () => {
       {/* Bottom Row: Unified Card for Distributions */}
       <div className="flex flex-col xl:flex-row items-center xl:items-stretch gap-10 w-full rounded-3xl bg-[#010314]/[0.05] border border-stone-200 shadow-sm p-8 md:p-12 relative overflow-hidden">
         
-        {/* Fun Distribution */}
+        {/* Fund Distribution */}
         <div className="flex flex-col sm:flex-row justify-center items-center w-full xl:w-5/12 gap-8">
           <div className="flex justify-center items-center w-32 h-32 sm:w-[12.5rem] sm:h-[12.5rem] rounded-full relative group shrink-0">
             <div className="w-[12.5rem] h-[12.5rem] flex items-center justify-center scale-[0.6] sm:scale-100 origin-center transition-transform duration-500 group-hover:scale-[0.65] sm:group-hover:scale-105">
-              <DoughnutChart data={funData} size={200} strokeWidth={45} />
+              <DoughnutChart data={fundData} size={200} strokeWidth={45} />
             </div>
           </div>
           <div className="flex flex-col justify-center items-start gap-6 w-full">
             <div className="fun_distribution text-white font-sans text-xl sm:text-2xl font-semibold leading-7">
-              Fun distribution
+              Fund distribution
             </div>
             <div className="flex flex-col justify-center items-start gap-4 w-full">
-              <div className="flex items-center gap-2.5 w-full">
-                <div className="w-[1.1875rem] h-[1.1875rem] rounded-full bg-[#d6f966]"></div>
-                <div className="contingency__70_ text-white font-sans font-medium leading-7">
-                  Contingency: 70%
+              {fundData.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-2.5 w-full">
+                  <div className="w-[1.1875rem] h-[1.1875rem] rounded-full" style={{ backgroundColor: item.color }}></div>
+                  <div className="text-white font-sans font-medium leading-7">
+                    {item.label}: {item.value}%
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2.5 w-full">
-                <div className="w-[1.1875rem] h-[1.1875rem] rounded-full bg-[#136f84]"></div>
-                <div className="investor__30_ text-white font-sans font-medium leading-7">
-                  Investor: 30%
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5 w-full">
-                <div className="w-[1.1875rem] h-[1.1875rem] rounded-full bg-[#44a08d]"></div>
-                <div className="legal___regulation__10_ text-white font-sans font-medium leading-7">
-                  Legal & Regulation: 10%
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -257,38 +249,24 @@ const ContainerCryptos = () => {
             </div>
             <div className="flex flex-col sm:flex-row items-start gap-6 w-full">
               <div className="flex flex-col justify-center items-start gap-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-[1.1875rem] h-[1.1875rem] rounded-full bg-[#d6f966]"></div>
-                  <div className="business_development__10_ text-white font-sans font-medium leading-7">
-                    Business Development: 10%
+                {tokenData.slice(0, 2).map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-2.5">
+                    <div className="w-[1.1875rem] h-[1.1875rem] rounded-full" style={{ backgroundColor: item.color }}></div>
+                    <div className="text-white font-sans font-medium leading-7">
+                      {item.label}: {item.value}%
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-[1.1875rem] h-[1.1875rem] rounded-full bg-[#136f84]"></div>
-                  <div className="poland__8_ text-white font-sans font-medium leading-7">
-                    Poland: 8%
-                  </div>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-[1.1875rem] h-[1.1875rem] rounded-full bg-[#44a08d]"></div>
-                  <div className="czech_republic__15_ text-white font-sans font-medium leading-7">
-                    Czech Republic: 15%
-                  </div>
-                </div>
+                ))}
               </div>
               <div className="flex flex-col justify-center items-start gap-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-[1.1875rem] h-[1.1875rem] rounded-full bg-[#bdec32]"></div>
-                  <div className="val-20-advisors text-white font-sans font-medium leading-7">
-                    20% Advisors
+                {tokenData.slice(2).map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-2.5">
+                    <div className="w-[1.1875rem] h-[1.1875rem] rounded-full" style={{ backgroundColor: item.color }}></div>
+                    <div className="text-white font-sans font-medium leading-7">
+                      {item.label}: {item.value}%
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-[1.1875rem] h-[1.1875rem] rounded-full bg-[#0f5869]"></div>
-                  <div className="val-8-founders text-white font-sans font-medium leading-7">
-                    8% Founders
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAppKit, useAppKitAccount, useDisconnect } from '@reown/appkit/react';
-import { coinsData } from './coinsData';
+import { coinsData, type Coin } from './coinsData';
 import { SmoothCursor } from '@/components/ui/smooth-cursor';
 import GsapCardAnimation from '@/components/GsapCardAnimation';
 import GsapSectionAnimation from '@/components/GsapSectionAnimation';
@@ -88,6 +88,7 @@ export default function Dashboard() {
 
   const [isBackendOffline, setIsBackendOffline] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
 
   // Countdown timer for next rotation
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 30, seconds: 0 });
@@ -826,8 +827,8 @@ export default function Dashboard() {
                 </div>
 
                 {/* Container Cryptos */}
-                <div data-gsap="fadeInRight" id="services" className="w-full flex flex-col gap-6 scroll-mt-28">
-                  <ContainerCryptos />
+                <div data-gsap="fadeInRight" id="services" className="w-full flex flex-col gap-6 scroll-mt-28 pt-8">
+                  <ContainerCryptos selectedCoin={selectedCoin} />
                 </div>
 
                 {/* Active Portfolio Allocation (Circular Diagram) */}
@@ -1204,7 +1205,7 @@ export default function Dashboard() {
                       c.symbol.toLowerCase().includes(searchQuery.toLowerCase())
                     )
                     .map((coin) => (
-                      <div key={coin.symbol} className="bg-white rounded-2xl p-6 flex flex-col justify-between h-[152px] relative border border-stone-100 hover:border-[#CDFC74]/50 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-md">
+                      <div key={coin.symbol} onClick={() => { setSelectedCoin(coin); document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' }); }} className="bg-white rounded-2xl p-6 flex flex-col justify-between h-[152px] relative border border-stone-100 hover:border-[#CDFC74]/50 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-md">
                         <div className="w-8 h-8 flex-shrink-0">
                           {coin.icon ? (
                             <img src={coin.icon} alt={coin.name} className="w-8 h-8 object-contain" />
@@ -1236,7 +1237,7 @@ export default function Dashboard() {
                       .slice(0, 10)
                       .filter(c => activeFilter === 'All' || c.filter === activeFilter)
                       .map((coin) => (
-                        <div key={coin.symbol} className="bg-white rounded-2xl p-6 flex flex-col justify-between h-[152px] relative border border-stone-100 hover:border-[#CDFC74]/50 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-md">
+                        <div key={coin.symbol} onClick={() => { setSelectedCoin(coin); document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' }); }} className="bg-white rounded-2xl p-6 flex flex-col justify-between h-[152px] relative border border-stone-100 hover:border-[#CDFC74]/50 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-md">
                           <div className="w-8 h-8 flex-shrink-0">
                             {coin.icon ? (
                               <img src={coin.icon} alt={coin.name} className="w-8 h-8 object-contain" />
@@ -1267,7 +1268,7 @@ export default function Dashboard() {
                       .slice(10)
                       .filter(c => activeFilter === 'All' || c.filter === activeFilter)
                       .map((coin) => (
-                        <div key={coin.symbol} className="bg-[#191A1B] rounded-2xl p-6 flex flex-col justify-between h-[152px] relative border border-stone-800 hover:border-[#CDFC74]/50 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-[0_8px_30px_rgba(205,252,116,0.1)]">
+                        <div key={coin.symbol} onClick={() => { setSelectedCoin(coin); document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' }); }} className="bg-[#191A1B] rounded-2xl p-6 flex flex-col justify-between h-[152px] relative border border-stone-800 hover:border-[#CDFC74]/50 transition-all duration-300 group cursor-pointer shadow-sm hover:shadow-[0_8px_30px_rgba(205,252,116,0.1)]">
                           <div className="w-8 h-8 flex-shrink-0">
                             {coin.icon ? (
                               <img src={coin.icon} alt={coin.name} className="w-8 h-8 object-contain" />
