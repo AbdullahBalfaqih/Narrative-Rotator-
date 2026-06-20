@@ -450,8 +450,12 @@ export default function Dashboard() {
       <nav className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4">
         <div className="flex max-w-[928px] w-full px-4 py-4 justify-between items-center rounded-[100px] bg-[rgba(20,20,20,0.75)] backdrop-blur-md border border-[rgba(255,255,255,0.05)] shadow-sm">
           <a href="/" className="flex justify-center items-center gap-2 shrink-0">
-            <span className="w-3 h-3 bg-[#CDFC74] rounded-full"></span>
-            <p className="text-white font-medium text-xl leading-6">Narrative Rotator</p>
+            <img
+              src="/icon.png"
+              alt="Narrative Logo"
+              className="w-8 h-8 object-contain"
+            />
+            <p className="text-white font-medium text-xl leading-6">Narrative</p>
           </a>
           <div className="flex items-center gap-2">
             <button onClick={() => setShowSettings(true)} className="flex py-2.5 px-4 justify-center items-center rounded-[100px] text-[rgba(255,255,255,0.8)] text-base hover:text-white hover:bg-[rgba(255,255,255,0.1)] transition-colors">
@@ -473,12 +477,8 @@ export default function Dashboard() {
             >
               {isBackendOffline ? 'Offline' : isAgentActive ? 'Stop' : 'Start'}
             </button>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-[100px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)]">
-              <span className="text-[#C7C7C7] text-xs font-medium">Balance:</span>
-              <span className="text-white text-sm font-semibold">${portfolioValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-            </div>
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-[100px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)]">
-              <span className="text-[#F0B90B] text-xs font-medium">BNB:</span>
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-[100px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)]">
+              <img src="/extracted_icons/coin_46.png" alt="BNB" className="w-4 h-4 object-contain" />
               <span className="text-white text-sm font-semibold">{bnbBalance.toFixed(4)}</span>
             </div>
             <button
@@ -867,7 +867,7 @@ export default function Dashboard() {
           </div>
           {/* Trade Recommendations - Infinite Scrolling Strip */}
           {pendingTrades.length > 0 && (
-            <div className="w-full overflow-hidden relative">
+            <div className="w-full overflow-hidden relative my-8">
               <style>{`
                 @keyframes scrollLoop {
                   0% { transform: translateX(0); }
@@ -1106,7 +1106,7 @@ export default function Dashboard() {
             </div>
           )}
           {/* Real-time Execution Logs */}
-          <div data-gsap="fadeInRight" className="bg-[#191A1B] border border-stone-800 rounded-3xl p-6 flex flex-col gap-4 flex-grow min-h-[480px] shadow-sm">
+          <div data-gsap="fadeInRight" className="bg-[#191A1B] border border-stone-800 rounded-3xl p-6 flex flex-col gap-4 flex-grow min-h-[480px] shadow-sm mt-12">
             <div className="flex items-center justify-between pb-3 flex-shrink-0 border-b border-[rgba(255,255,255,0.05)]">
               <div className="flex items-center gap-2">
                 <span className={`w-2 h-2 rounded-full ${isAgentActive && !isBackendOffline ? 'bg-emerald-500 animate-pulse' : 'bg-stone-500'}`}></span>
