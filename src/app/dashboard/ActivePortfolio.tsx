@@ -18,10 +18,7 @@ const ActivePortfolio: React.FC<ActivePortfolioProps> = ({ allocation, portfolio
   return (
     <div className="relative flex justify-center items-center w-full min-h-[750px]">
       <div className="relative w-[696px] h-[701px]">
-        {/* Background Rotating Pattern */}
-        <div className="absolute top-[183px] left-[218px] flex justify-center items-center w-[764px] h-[764px] opacity-[0.6] pointer-events-none z-0">
-          <img src="/Allocation/images/v122_9470.png" alt="background circle" className="w-[764px] h-[764px] object-contain animate-spin-slow" />
-        </div>
+        {/* Background Rotating Pattern (Removed) */}
 
         {/* --- Arrows (Decorations) --- */}
         <div className="absolute top-[374px] left-[67px] z-0" style={{ transform: 'rotate(130deg)' }}>
@@ -56,8 +53,9 @@ const ActivePortfolio: React.FC<ActivePortfolioProps> = ({ allocation, portfolio
         </div>
 
         {/* --- Center Square (v122_9462) --- */}
-        <div className="absolute top-[270px] left-[265px] flex flex-col justify-center items-center w-[167px] h-[160px] rounded-[10px] bg-gradient-to-br from-[#222325] to-[#151515] p-5 shadow-xl border border-stone-800 z-10">
-           <img src="/Allocation/images/v122_9467.png" alt="Center Star" className="w-[85px] h-[80px] object-contain" />
+        <div className="absolute top-[270px] left-[265px] flex flex-col justify-center items-center w-[167px] h-[160px] rounded-[10px] bg-gradient-to-br from-[#222325] to-[#151515] p-5 shadow-[0_0_45px_rgba(225,240,118,0.25)] border border-[#e1f076]/20 z-10 transition-all duration-300">
+           <div className="absolute inset-0 bg-[#e1f076]/5 rounded-[10px] animate-pulse pointer-events-none"></div>
+           <img src="/Allocation/images/v122_9467.png" alt="Center Star" className="w-[85px] h-[80px] object-contain drop-shadow-[0_0_15px_rgba(225,240,118,0.3)] relative z-10" />
         </div>
 
         {/* --- Cards --- */}

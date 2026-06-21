@@ -8,6 +8,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function LandingPage() {
   const [activeTab, setActiveTab] = useState('CRM');
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const pageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -61,13 +62,40 @@ export default function LandingPage() {
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-6 text-sm font-medium">
+          <div className="flex items-center gap-4 md:gap-6 text-sm font-medium">
             <a href="#" className="text-stone-400 hover:text-stone-100 hidden md:block transition-colors">Login</a>
-            <a href="/dashboard" className="bg-[#CDFC74] text-stone-950 px-6 py-3 rounded-lg hover:bg-white transition-all duration-300 font-semibold shadow-lg">
+            <a href="/dashboard" className="bg-[#CDFC74] text-stone-950 px-4 md:px-6 py-2 md:py-3 rounded-lg hover:bg-white transition-all duration-300 font-semibold shadow-lg">
               Launch App
             </a>
+            
+            {/* Mobile Hamburger Button */}
+            <button 
+              className="lg:hidden flex items-center justify-center p-2 text-stone-300 hover:text-white pointer-events-auto"
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {showMobileMenu ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        <div className={`lg:hidden absolute top-full left-4 right-4 mt-4 bg-[#1c1917] border border-stone-800/80 rounded-2xl shadow-2xl backdrop-blur-xl p-4 flex flex-col gap-2 origin-top transition-all duration-400 ease-in-out ${showMobileMenu ? 'opacity-100 scale-y-100 pointer-events-auto translate-y-0' : 'opacity-0 scale-y-90 pointer-events-none -translate-y-5'}`}>
+            <a href="#product" onClick={() => setShowMobileMenu(false)} className="px-4 py-3 text-stone-300 hover:text-white hover:bg-stone-800/50 rounded-xl transition-colors font-medium">Product</a>
+            <a href="/dashboard" onClick={() => setShowMobileMenu(false)} className="px-4 py-3 text-[#CDFC74] hover:text-white hover:bg-stone-800/50 rounded-xl transition-colors font-medium">Rotator Dashboard</a>
+            <a href="#" onClick={() => setShowMobileMenu(false)} className="px-4 py-3 text-stone-300 hover:text-white hover:bg-stone-800/50 rounded-xl transition-colors font-medium">Case studies</a>
+            <a href="#" onClick={() => setShowMobileMenu(false)} className="px-4 py-3 text-stone-300 hover:text-white hover:bg-stone-800/50 rounded-xl transition-colors font-medium">Pricing</a>
+            <a href="#" onClick={() => setShowMobileMenu(false)} className="px-4 py-3 text-stone-300 hover:text-white hover:bg-stone-800/50 rounded-xl transition-colors font-medium">Blog</a>
+            <a href="#" onClick={() => setShowMobileMenu(false)} className="px-4 py-3 text-stone-300 hover:text-white hover:bg-stone-800/50 rounded-xl transition-colors font-medium">About</a>
+            <a href="#" onClick={() => setShowMobileMenu(false)} className="px-4 py-3 text-stone-300 hover:text-white hover:bg-stone-800/50 rounded-xl transition-colors font-medium">Contact</a>
+            <div className="w-full h-px bg-stone-800/80 my-2"></div>
+            <a href="#" onClick={() => setShowMobileMenu(false)} className="px-4 py-3 text-center text-stone-300 hover:text-white bg-stone-800 hover:bg-stone-700 rounded-xl transition-colors font-medium">Login</a>
+          </div>
       </nav>
 
       {/* HERO SECTION */}

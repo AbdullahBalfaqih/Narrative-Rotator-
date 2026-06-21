@@ -12,21 +12,21 @@ import DetailsSection from './DetailsSection';
 const autonomousGuardrailsColumns = [
   {
     icon: '/details/images/v127_18.png',
-    iconClass: 'object-cover object-center scale-[2.2]',
+    iconClass: 'object-cover object-center scale-[1.4]',
     title: 'Max size per trade',
     subtitle: '15%',
     bullets: ['Max allocation rotation shift per cycle']
   },
   {
     icon: '/details/images/v127_59.png',
-    iconClass: 'object-cover object-center scale-[2.2]',
+    iconClass: 'object-cover object-center scale-[1.4]',
     title: 'Daily drawdown limit',
     subtitle: '5%',
     bullets: ['Daily risk loss cap before agent sleeps']
   },
   {
     icon: '/details/images/v127_100.png',
-    iconClass: 'object-cover object-center scale-[2.2]',
+    iconClass: 'object-cover object-center scale-[1.4]',
     title: 'Slippage protection',
     subtitle: '0.5%',
     bullets: ['Maximum swap slippage protection setting']
@@ -136,6 +136,7 @@ export default function Dashboard() {
   // Trade approval state
   const [pendingTrades, setPendingTrades] = useState<any[]>([]);
   const [autoTrade, setAutoTrade] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const scrollToServices = () => {
     const target = document.getElementById('services');
@@ -541,7 +542,7 @@ export default function Dashboard() {
                 <>
                   <button
                     onClick={() => setShowDisconnect((prev) => !prev)}
-                    className="flex items-center px-6 py-2.5 rounded-lg bg-[#CDFC74] text-stone-950 font-semibold cursor-pointer transition-all duration-200 hover:bg-white shadow-lg active:scale-95"
+                    className="flex items-center px-4 md:px-6 py-2.5 rounded-lg bg-[#CDFC74] text-stone-950 font-semibold cursor-pointer transition-all duration-200 hover:bg-white shadow-lg active:scale-95"
                   >
                     <span>{address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}</span>
                   </button>
@@ -559,16 +560,17 @@ export default function Dashboard() {
               ) : (
                 <button
                   onClick={(e) => { e.preventDefault(); open(); }}
-                  className="flex items-center px-6 py-2.5 rounded-lg bg-[#CDFC74] text-stone-950 font-semibold cursor-pointer transition-all duration-200 hover:bg-white shadow-lg active:scale-95 group"
+                  className="flex items-center px-4 md:px-6 py-2.5 rounded-lg bg-[#CDFC74] text-stone-950 font-semibold cursor-pointer transition-all duration-200 hover:bg-white shadow-lg active:scale-95 group"
                 >
-                  <span>Connect Wallet</span>
+                  <span className="hidden sm:inline">Connect Wallet</span>
+                  <span className="sm:hidden">Connect</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 74 74"
                     height="20"
                     width="20"
-                    className="ml-2 transition-transform duration-300 ease-in-out group-hover:translate-x-[4px]"
+                    className="ml-2 hidden sm:block transition-transform duration-300 ease-in-out group-hover:translate-x-[4px]"
                   >
                     <circle strokeWidth="3" stroke="currentColor" r="35.5" cy="37" cx="37"></circle>
                     <path
@@ -579,8 +581,69 @@ export default function Dashboard() {
                 </button>
               )}
             </div>
+
+            {/* Mobile Hamburger Button */}
+            <button 
+              className="lg:hidden flex items-center justify-center p-2 text-stone-300 hover:text-white pointer-events-auto"
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {showMobileMenu ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        <div className={`lg:hidden absolute top-full left-4 right-4 mt-4 bg-[#1c1917] border border-stone-800/80 rounded-2xl shadow-2xl backdrop-blur-xl p-4 flex flex-col gap-4 origin-top transition-all duration-400 ease-in-out ${showMobileMenu ? 'opacity-100 scale-y-100 pointer-events-auto translate-y-0' : 'opacity-0 scale-y-90 pointer-events-none -translate-y-5'}`}>
+            <button onClick={() => { setShowSettings(true); setShowMobileMenu(false); }} className="text-left px-4 py-3 text-stone-300 hover:text-white hover:bg-stone-800/50 rounded-xl transition-colors font-medium">
+              Settings
+            </button>
+            <button onClick={() => { setShowAgents(true); setShowMobileMenu(false); }} className="text-left px-4 py-3 text-stone-300 hover:text-white hover:bg-stone-800/50 rounded-xl transition-colors font-medium">
+              Agents
+            </button>
+            <div className="w-full h-px bg-stone-800/80"></div>
+            <div className="flex items-center justify-between px-4 py-2">
+              <span className="text-stone-400 font-medium text-sm">BNB Balance</span>
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#F0B90B"><path d="M12 0L14.47 4.47 12 2.94 9.53 4.47zM16.88 6.12L21.18 8.59 18.71 10.12 14.41 7.65zM21.18 15.41L16.88 17.88 14.41 16.35 18.71 13.88zM12 21.06L9.53 19.53 12 18 14.47 19.53zM7.12 17.88L2.82 15.41 5.29 13.88 9.59 16.35zM2.82 8.59L7.12 6.12 9.59 7.65 5.29 10.12z" fill="#F0B90B"/><path d="M12 4.76L7.12 7.65 8.59 8.59 12 10.59 15.41 8.59 16.88 7.65zM12 13.41L8.59 11.41 7.12 12.35 12 15.24 16.88 12.35 15.41 11.41z" fill="#F0B90B"/></svg>
+                <span className="text-stone-300 font-semibold">{bnbBalance.toFixed(4)}</span>
+              </div>
+            </div>
+            <div className="w-full h-px bg-stone-800/80"></div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { toggleAgent(); setShowMobileMenu(false); }}
+                disabled={isBackendOffline}
+                className={`flex-1 py-3 rounded-xl transition-all duration-300 font-semibold shadow-sm ${
+                  isBackendOffline
+                    ? 'bg-stone-900 text-stone-500 cursor-not-allowed border border-stone-800'
+                    : isAgentActive
+                      ? 'bg-stone-100 text-stone-950 hover:bg-stone-200'
+                      : 'bg-black text-white border border-stone-800 hover:bg-stone-900'
+                }`}
+              >
+                {isBackendOffline ? 'Offline' : isAgentActive ? 'Stop' : 'Start'}
+              </button>
+              <button
+                onClick={() => { toggleAutoTrade(); setShowMobileMenu(false); }}
+                disabled={isBackendOffline}
+                className={`flex-1 py-3 rounded-xl transition-all duration-300 font-semibold shadow-sm ${
+                  isBackendOffline
+                    ? 'bg-stone-900 text-stone-500 cursor-not-allowed border border-stone-800'
+                    : autoTrade
+                      ? 'bg-[#CDFC74] text-stone-950 hover:bg-white'
+                      : 'bg-black text-white border border-stone-800 hover:bg-stone-900'
+                }`}
+              >
+                {autoTrade ? 'Auto Trade' : 'Manual'}
+              </button>
+            </div>
+          </div>
       </nav>
 
       {/* Settings Modal */}
