@@ -9,6 +9,8 @@ import GsapSectionAnimation from '@/components/GsapSectionAnimation';
 import ContainerCryptos from './ContainerCryptos';
 import DetailsSection from './DetailsSection';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+
 const autonomousGuardrailsColumns = [
   {
     icon: '/details/images/v127_18.png',
@@ -196,7 +198,7 @@ export default function Dashboard() {
   const fetchData = async () => {
     try {
       // Fetch status
-      const statusRes = await fetch('http://127.0.0.1:8000/api/status');
+      const statusRes = await fetch(`${API_BASE}/api/status`);
       if (!statusRes.ok) throw new Error('Failed to fetch status');
       const statusData = await statusRes.json();
 
@@ -215,14 +217,14 @@ export default function Dashboard() {
       setBnbBalance(statusData.bnb_balance ?? 0);
 
       // Fetch metrics
-      const metricsRes = await fetch('http://127.0.0.1:8000/api/metrics');
+      const metricsRes = await fetch(`${API_BASE}/api/metrics`);
       if (!metricsRes.ok) throw new Error('Failed to fetch metrics');
       const metricsData = await metricsRes.json();
       if (metricsData.heats) setHeats(metricsData.heats);
       if (metricsData.allocation) setAllocation(metricsData.allocation);
 
       // Fetch logs
-      const logsRes = await fetch('http://127.0.0.1:8000/api/logs');
+      const logsRes = await fetch(`${API_BASE}/api/logs`);
       if (!logsRes.ok) throw new Error('Failed to fetch logs');
       const logsData = await logsRes.json();
       setLogs(logsData.logs || []);
@@ -235,7 +237,7 @@ export default function Dashboard() {
 
       // Fetch settings
       try {
-        const settingsRes = await fetch('http://127.0.0.1:8000/api/settings');
+        const settingsRes = await fetch(`${API_BASE}/api/settings`);
         if (settingsRes.ok) setSettings(await settingsRes.json());
       } catch {}
 
@@ -257,8 +259,8 @@ export default function Dashboard() {
   const fetchWebhookData = async () => {
     try {
       const [configRes, msgRes] = await Promise.all([
-        fetch('http://127.0.0.1:8000/api/webhook-config'),
-        fetch('http://127.0.0.1:8000/api/incoming-messages')
+        fetch(`${API_BASE}/api/webhook-config`),
+        fetch(`${API_BASE}/api/incoming-messages`)
       ]);
       if (configRes.ok) {
         const configData = await configRes.json();
@@ -274,7 +276,7 @@ export default function Dashboard() {
   const addWebhook = async () => {
     if (!webhookUrl.trim()) return;
     try {
-      await fetch('http://127.0.0.1:8000/api/webhook-config', {
+      await fetch(`${API_BASE}/api/webhook-config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: webhookUrl.trim() })
@@ -286,7 +288,7 @@ export default function Dashboard() {
 
   const removeWebhook = async (url: string) => {
     try {
-      await fetch('http://127.0.0.1:8000/api/webhook-config', {
+      await fetch(`${API_BASE}/api/webhook-config`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url })
@@ -298,7 +300,7 @@ export default function Dashboard() {
   // Toggle active agent state
   const toggleAgent = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/toggle', { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/toggle`, { method: 'POST' });
       if (!res.ok) throw new Error('Failed to toggle agent');
       const data = await res.json();
       setIsAgentActive(data.is_active);
@@ -312,7 +314,7 @@ export default function Dashboard() {
   // Save updated risk limits to backend YAML configuration
   const saveRiskLimits = async (maxSize: number, drawdown: number, slip: number) => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/risk', {
+      const res = await fetch(`${API_BASE}/api/risk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -332,7 +334,7 @@ export default function Dashboard() {
   // Fetch pending trades
   const fetchPendingTrades = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/pending-trades');
+      const res = await fetch(`${API_BASE}/api/pending-trades`);
       if (!res.ok) throw new Error('Failed to fetch pending trades');
       const data = await res.json();
       setPendingTrades(data.trades || []);
@@ -344,7 +346,7 @@ export default function Dashboard() {
   // Approve a pending trade
   const approveTrade = async (tradeId: number) => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/approve-trade', {
+      const res = await fetch(`${API_BASE}/api/approve-trade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ trade_id: tradeId })
@@ -362,7 +364,7 @@ export default function Dashboard() {
   // Reject a pending trade
   const rejectTrade = async (tradeId: number) => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/reject-trade', {
+      const res = await fetch(`${API_BASE}/api/reject-trade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ trade_id: tradeId })
@@ -378,7 +380,7 @@ export default function Dashboard() {
   // Toggle auto trade mode
   const toggleAutoTrade = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/auto-trade', { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/auto-trade`, { method: 'POST' });
       if (!res.ok) throw new Error('Failed to toggle auto trade');
       const data = await res.json();
       setAutoTrade(data.auto_trade);
@@ -676,7 +678,7 @@ export default function Dashboard() {
               <button onClick={async () => {
                 for (const [key, value] of Object.entries(settings)) {
                   try {
-                    await fetch('http://127.0.0.1:8000/api/settings', {
+                    await fetch(`${API_BASE}/api/settings`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ key, value })
