@@ -32,7 +32,17 @@ class TWAKExecutor:
     def _resolve(self, token):
         return BSC_TOKEN_ADDRESSES.get(token.upper(), token)
 
+    def _is_twak_available(self):
+        try:
+            subprocess.run([get_twak_cmd(), "--version"], capture_output=True, text=True, timeout=5)
+            return True
+        except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
+            return False
+
     def _execute_twak_swap(self, from_token, to_token, amount_usd):
+        if not self._is_twak_available():
+            logger.warning("TWAK CLI not available on this server. Swap skipped.")
+            return False
         logger.info(f"TWAK: Swap {amount_usd:.4f} USD {from_token} -> {to_token} on BSC")
         from_resolved = self._resolve(from_token)
         to_resolved = self._resolve(to_token)
