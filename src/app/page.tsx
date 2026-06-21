@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SmoothCursor } from '@/components/ui/smooth-cursor';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -30,6 +31,7 @@ export default function LandingPage() {
 
   return (
     <div ref={pageRef} className="font-sans text-stone-300 min-h-screen flex flex-col justify-between relative bg-[#0c0a09] overflow-x-hidden">
+      <SmoothCursor />
       {/* Premium subtle grain overlay */}
       <div 
         className="absolute inset-0 pointer-events-none opacity-[0.02]"

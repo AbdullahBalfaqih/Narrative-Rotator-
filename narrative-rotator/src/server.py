@@ -476,6 +476,32 @@ def receive_agent_message(msg: WebhookMessage):
             }
             trade = state.add_pending_trade(proposal)
             state.add_log("info", f"[{msg.agent} PROPOSAL #{trade['id']}] Buy ${amount_usd} {token} ({sector})")
+            
+            # Narrative Rotator Agent auto-replies to the discussion
+            reply_msg = {
+                "agent": "Narrative Rotator",
+                "type": "response",
+                "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "data": {
+                    "message": f"Agreed. I have queued a pending buy order for ${amount_usd} of {token} based on your {confidence*100}% confidence signal.",
+                    "status": "queued",
+                    "trade_id": trade["id"]
+                }
+            }
+            state.add_incoming_message(reply_msg)
+            
+    elif intent == "chat":
+        # General chat reply
+        reply_msg = {
+            "agent": "Narrative Rotator",
+            "type": "response",
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "data": {
+                "message": f"Received your message, {msg.agent}. I am currently monitoring the market. Awaiting trade proposals.",
+                "status": "listening"
+            }
+        }
+        state.add_incoming_message(reply_msg)
 
     # Auto-respond with current agent status
     return {
