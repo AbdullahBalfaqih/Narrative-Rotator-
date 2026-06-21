@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: narrative-rotator
+    runtime: python
+    repo: https://github.com/AbdullahBalfaqih/Narrative-Rotator-.git
+    branch: master
+    rootDir: narrative-rotator
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn src.server:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: "10000"
+    plan: free
