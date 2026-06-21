@@ -790,7 +790,6 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
-              </div>
             </div>
             
             {/* Chat with Agent */}
@@ -811,7 +810,6 @@ export default function Dashboard() {
                 </button>
               </div>
             </div>
-            
           </div>
         </div>
       )}
