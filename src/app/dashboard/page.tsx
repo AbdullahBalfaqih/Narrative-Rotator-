@@ -764,10 +764,10 @@ export default function Dashboard() {
       {/* ============================================= */}
       {/* MAIN CONTAINER */}
       {/* ============================================= */}
-      <main className="w-full max-w-[1500px] mx-auto px-6 pt-28 pb-20 relative z-20 flex-grow">
+      <main className="w-full max-w-[1500px] mx-auto px-0 sm:px-6 pt-28 pb-20 relative z-20 flex-grow">
 
         {/* Single unified card */}
-        <div id="about" className="bg-[#050505] rounded-3xl p-8 flex flex-col gap-10 scroll-mt-28">
+        <div id="about" className="bg-[#050505] rounded-none sm:rounded-3xl p-4 sm:p-8 flex flex-col gap-10 scroll-mt-28">
           <GsapSectionAnimation>
 
           {/* Connection Offline Notice */}
@@ -789,8 +789,8 @@ export default function Dashboard() {
           )}
 
           {/* Token Sale Section - replaces Narrative rotator console */}
-          <div data-gsap="blurIn" className="relative rounded-3xl overflow-hidden bg-[#0D0E0F]" style={{ background: 'linear-gradient(125deg, #222325 0%, #0a0a0a 100%)' }}>
-            <div className="flex flex-col items-center gap-10 md:gap-20 py-16 md:py-[130px] px-8 lg:px-12 xl:px-24">
+          <div data-gsap="blurIn" className="relative rounded-none sm:rounded-3xl overflow-hidden bg-[#0D0E0F]" style={{ background: 'linear-gradient(125deg, #222325 0%, #0a0a0a 100%)' }}>
+            <div className="flex flex-col items-center gap-10 md:gap-20 py-12 sm:py-16 md:py-[130px] px-4 sm:px-8 lg:px-12 xl:px-24">
               {/* Header row: badge + title + social */}
               <div className="flex flex-col items-start gap-5 w-full max-w-[1400px]">
                 {/* Badge */}
@@ -823,7 +823,7 @@ export default function Dashboard() {
               </div>
 
               {/* Token Metrics Card */}
-              <div data-gsap="zoomIn" className="flex flex-col p-8 md:p-[60px] gap-12 rounded-md bg-[#191A1B] w-full max-w-[1400px]">
+              <div data-gsap="zoomIn" className="flex flex-col p-4 sm:p-8 md:p-[60px] gap-12 rounded-md bg-[#191A1B] w-full max-w-[1400px]">
                 {/* Top Row: Token stats & Timer */}
                 <div className="flex flex-wrap justify-between items-center gap-10 w-full">
                   {/* Left: Token stats */}

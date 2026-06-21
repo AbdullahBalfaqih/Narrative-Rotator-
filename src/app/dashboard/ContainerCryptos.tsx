@@ -82,7 +82,7 @@ const ContainerCryptos = ({ selectedCoin }: { selectedCoin: Coin | null }) => {
     <div className="flex flex-col gap-10 w-full max-w-[1400px] mx-auto py-10 font-sans">
       
       {/* Top Row: Single Unified Card */}
-      <div className="flex flex-col xl:flex-row items-center xl:items-stretch gap-10 w-full rounded-3xl bg-[#010314]/[0.05] shadow-sm relative overflow-hidden p-8 md:p-12">
+      <div className="flex flex-col xl:flex-row items-center xl:items-stretch gap-10 w-full rounded-none sm:rounded-3xl bg-[#010314]/[0.05] shadow-sm relative overflow-hidden p-4 sm:p-8 md:p-12">
         <div className="absolute top-0 right-0 w-40 h-40 bg-[#e1f076]/10 rounded-full blur-3xl animate-pulse pointer-events-none" />
 
         {/* Left Column Content */}
