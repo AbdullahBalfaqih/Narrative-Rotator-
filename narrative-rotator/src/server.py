@@ -18,6 +18,7 @@ from src.data.sentiment_analyzer import SentimentAnalyzer
 from src.data.sector_tracker import SectorTracker
 from src.agent.decision_engine import DecisionEngine
 from src.execution.twak_executor import TWAKExecutor
+from src.execution.web3_executor import Web3Executor, user_wallet_manager
 from src.execution.portfolio_manager import PortfolioManager
 from src.agent.narrative_agent import NarrativeRotatorAgent
 
@@ -138,6 +139,7 @@ tracker = SectorTracker(cmc, analyzer)
 decision_engine = DecisionEngine()
 portfolio_manager = PortfolioManager(cmc)
 executor = TWAKExecutor()
+web3_executor = Web3Executor()
 
 # Custom logging Handler to forward agent internals to state logs in real-time
 import logging
@@ -329,6 +331,8 @@ def get_status():
         "monitored_pairs": monitored_pairs,
         "bsc_block": bsc_block or "—",
         "bnb_balance": portfolio_manager.bnb_balance,
+        "user_wallet": user_wallet_manager.address or "",
+        "user_wallet_can_trade": user_wallet_manager.is_ready(),
     }
 
 @app.get("/api/metrics")
@@ -395,16 +399,21 @@ def approve_trade(data: TradeAction):
     amount = trade["amount_usd"]
     stable = "USDC"
     
-    try:
+    def _execute_trade(trade_obj):
+        active = web3_executor if user_wallet_manager.is_ready() else executor
         if is_buy:
-            success = executor.buy_asset(token, stable, amount)
-            if success:
+            return active.buy_asset(token, stable, amount)
+        else:
+            return active.sell_asset(token, stable, amount)
+
+    try:
+        success = _execute_trade(trade)
+        if success:
+            if is_buy:
                 portfolio_manager.adjust_asset_shares(token, amount, is_buy=True)
                 state.add_log("success", f"[APPROVED] Bought ${amount:.2f} {token} ({trade['sector']})")
                 state.fire_webhooks("trade_executed", {"action": "buy", "token": token, "amount": amount, "sector": trade["sector"]})
-        else:
-            success = executor.sell_asset(token, stable, amount)
-            if success:
+            else:
                 portfolio_manager.adjust_asset_shares(token, amount, is_buy=False)
                 state.add_log("success", f"[APPROVED] Sold ${amount:.2f} {token} ({trade['sector']})")
                 state.fire_webhooks("trade_executed", {"action": "sell", "token": token, "amount": amount, "sector": trade["sector"]})
@@ -545,6 +554,73 @@ CONFIG_KEYS = [
     "CMC_API_KEY", "OPENROUTER_API_KEY", "OPENROUTER_MODEL",
     "ROTATION_INTERVAL_SEC", "TWAK_WALLET_PASSWORD"
 ]
+
+class CreateWalletRequest(BaseModel):
+    password: str = ""
+
+@app.post("/api/create-wallet")
+def create_wallet(data: CreateWalletRequest):
+    if executor._is_twak_available():
+        password = data.password or os.getenv("TWAK_WALLET_PASSWORD", "Agent@123456")
+        try:
+            result = subprocess.run(
+                [get_twak_cmd(), "wallet", "create", "--json", "--password", password],
+                capture_output=True, text=True, timeout=30
+            )
+            if result.returncode == 0:
+                wdata = json.loads(result.stdout)
+                bsc_addr = next((a["address"] for a in wdata.get("addresses", []) if a["chainId"] == "bsc"), wdata["addresses"][0]["address"])
+                state.wallet_address = bsc_addr
+                state.add_log("success", f"New wallet created via TWAK: {bsc_addr[:6]}...{bsc_addr[-4:]}")
+                return {
+                    "status": "success",
+                    "method": "twak",
+                    "address": bsc_addr,
+                    "password": password,
+                    "message": "Wallet protected by password. Save it to recover."
+                }
+            return {"status": "error", "message": result.stderr}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+    return {"status": "error", "message": "TWAK not available on this server. Use client-side wallet generation instead."}
+
+class SetWalletRequest(BaseModel):
+    address: str
+    private_key: str = ""
+
+@app.post("/api/set-wallet")
+def set_wallet(data: SetWalletRequest):
+    state.wallet_address = data.address
+    if data.private_key:
+        user_wallet_manager.set_wallet(data.address, data.private_key)
+        state.add_log("success", f"User wallet configured for trading: {data.address[:6]}...{data.address[-4:]}")
+    else:
+        user_wallet_manager.set_wallet(data.address)
+        state.add_log("info", f"Wallet address set: {data.address[:6]}...{data.address[-4:]}")
+    return {"status": "success", "address": data.address, "can_trade": bool(data.private_key)}
+
+class TestSwapRequest(BaseModel):
+    from_token: str = "BNB"
+    to_token: str = "USDC"
+    amount_usd: float = 1.0
+
+@app.post("/api/test-swap")
+def test_swap(data: TestSwapRequest):
+    if not user_wallet_manager.is_ready():
+        return {"status": "error", "message": "No user wallet configured. Set your private key in Settings first."}
+    state.add_log("info", f"Test swap: {data.amount_usd} {data.from_token} -> {data.to_token}")
+    try:
+        if data.from_token == "BNB":
+            logger.warning("Web3Executor does not support native BNB swap path yet. Use a token pair like USDC->CAKE.")
+            return {"status": "error", "message": "Use token-to-token pair (e.g. USDC->CAKE). Native BNB not supported yet."}
+        success = web3_executor._swap(data.from_token, data.to_token, data.amount_usd)
+        if success:
+            state.add_log("success", f"Test swap succeeded: {data.amount_usd} {data.from_token} -> {data.to_token}")
+            return {"status": "success", "message": f"Swapped {data.amount_usd} {data.from_token} -> {data.to_token}"}
+        else:
+            return {"status": "error", "message": "Swap failed. Check logs."}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 class SettingsUpdate(BaseModel):
     key: str

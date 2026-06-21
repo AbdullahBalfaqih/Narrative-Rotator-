@@ -62,21 +62,53 @@ const tokenData = [
 import { type Coin } from './coinsData';
 
 const ContainerCryptos = ({ selectedCoin }: { selectedCoin: Coin | null }) => {
-  const [soldTokens, setSoldTokens] = useState(1542300);
-  const [cryptoRate, setCryptoRate] = useState(0.000021);
-  const [usdLimit, setUsdLimit] = useState(5000000);
+  const [marketData, setMarketData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSoldTokens(prev => prev + Math.floor(Math.random() * 50) + 10);
-      setCryptoRate(prev => {
-        const fluctuation = (Math.random() - 0.5) * 0.0000005;
-        return Math.max(0.000015, prev + fluctuation);
-      });
-      setUsdLimit(prev => prev + Math.floor(Math.random() * 150));
-    }, 2500);
-    return () => clearInterval(interval);
-  }, []);
+    const symbol = selectedCoin ? selectedCoin.symbol : 'BNB';
+    let isMounted = true;
+    
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/cmc?symbol=${symbol}`);
+        if (!res.ok) throw new Error('API Error');
+        const data = await res.json();
+        const coinData = data.data && data.data[symbol];
+        if (coinData && isMounted) {
+          const quote = coinData.quote.USD;
+          setMarketData({
+            price: quote.price,
+            marketCap: quote.market_cap,
+            volume24h: quote.volume_24h,
+            circulatingSupply: coinData.circulating_supply,
+            percentChange24h: quote.percent_change_24h,
+            lastUpdated: new Date(quote.last_updated).toLocaleString()
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching CMC data:', error);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 60000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [selectedCoin]);
+
+  const formatUSD = (val: number) => {
+    if (!val) return '—';
+    if (val >= 1e9) return `$${(val / 1e9).toFixed(2)}B`;
+    if (val >= 1e6) return `$${(val / 1e6).toFixed(2)}M`;
+    return `$${val.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+  };
 
   return (
     <div className="flex flex-col gap-10 w-full max-w-[1400px] mx-auto py-10 font-sans">
@@ -94,65 +126,57 @@ const ContainerCryptos = ({ selectedCoin }: { selectedCoin: Coin | null }) => {
                   Name:
                 </div>
                 <div className="flex flex-col items-start text-[#e1f076] font-sans text-xl leading-[1.875rem] font-bold">
-                  {selectedCoin ? `${selectedCoin.name} (${selectedCoin.symbol})` : 'Narrative (NARR)'}
+                  {selectedCoin ? `${selectedCoin.name} (${selectedCoin.symbol})` : 'BNB (BNB)'}
                 </div>
               </div>
               <div className="flex items-center gap-4 sm:gap-10 w-full">
                 <div className="flex flex-col items-start w-[7.875rem] fixed_limit_ text-white font-sans text-xl leading-[1.875rem] font-medium">
-                  Fixed limit:
+                  Market Cap:
                 </div>
                 <div className="flex flex-col items-start val-30m text-stone-400 font-sans text-xl leading-[1.875rem] transition-all duration-300">
-                  {usdLimit.toLocaleString()} USD
+                  {loading ? 'Loading...' : (marketData ? formatUSD(marketData.marketCap) : '—')}
                 </div>
               </div>
               <div className="flex items-center gap-4 sm:gap-10 w-full">
                 <div className="flex flex-col items-start w-[7.875rem] soft_cap_ text-white font-sans text-xl leading-[1.875rem] font-medium">
-                  Soft cap:
+                  24h Volume:
                 </div>
                 <div className="flex flex-col items-start val-28m text-stone-400 font-sans text-xl leading-[1.875rem]">
-                  1,500,000 USD
+                  {loading ? 'Loading...' : (marketData ? formatUSD(marketData.volume24h) : '—')}
                 </div>
               </div>
               <div className="flex items-center gap-4 sm:gap-10 w-full">
                 <div className="flex flex-col items-start w-[7.875rem] exchange_ text-white font-sans text-xl leading-[1.875rem] font-medium">
-                  Exchange:
+                  Current Price:
                 </div>
-                <div className="flex flex-col items-start val-1eth text-stone-400 font-sans text-xl leading-[1.875rem]">
-                  1 ETH = 50,000 {selectedCoin ? selectedCoin.symbol : 'NARR'}
+                <div className="flex flex-col items-start val-1eth text-[#e1f076] font-sans text-xl leading-[1.875rem] font-medium">
+                  {loading ? 'Loading...' : (marketData ? `$${marketData.price.toLocaleString(undefined, { maximumFractionDigits: 6 })}` : '—')}
                 </div>
               </div>
             </div>
             <div className="flex flex-col justify-center items-start gap-6 w-full mt-4 sm:mt-0">
               <div className="flex items-center gap-4 sm:gap-10 w-full">
                 <div className="flex flex-col items-start w-[7.875rem] currency_ text-white font-sans text-xl leading-[1.875rem] font-medium">
-                  Currency:
+                  Supply:
                 </div>
                 <div className="flex flex-col items-start eth__btc text-stone-400 font-sans text-xl leading-[1.875rem]">
-                  ETH, USDT, USDC
+                  {loading ? 'Loading...' : (marketData ? `${marketData.circulatingSupply.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${selectedCoin ? selectedCoin.symbol : 'BNB'}` : '—')}
                 </div>
               </div>
               <div className="flex items-center gap-4 sm:gap-10 w-full">
                 <div className="flex flex-col items-start w-[7.875rem] min_purchase_ text-white font-sans text-xl leading-[1.875rem] font-medium">
-                  Min purchase:
+                  24h Change:
                 </div>
-                <div className="flex flex-col items-start val-0-1eth text-stone-400 font-sans text-xl leading-[1.875rem]">
-                  0.05 ETH / 2,500 {selectedCoin ? selectedCoin.symbol : 'NARR'}
+                <div className={`flex flex-col items-start font-sans text-xl leading-[1.875rem] ${marketData && marketData.percentChange24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {loading ? 'Loading...' : (marketData ? `${marketData.percentChange24h > 0 ? '+' : ''}${marketData.percentChange24h.toFixed(2)}%` : '—')}
                 </div>
               </div>
               <div className="flex items-center gap-4 sm:gap-10 w-full">
                 <div className="flex flex-col items-start w-[7.875rem] starts_ text-white font-sans text-xl leading-[1.875rem] font-medium">
-                  Starts:
+                  Updated:
                 </div>
                 <div className="flex flex-col items-start december_4__9_00_am_ text-stone-400 font-sans text-xl leading-[1.875rem]">
-                  August 15 (12:00 PM UTC)
-                </div>
-              </div>
-              <div className="flex items-center gap-4 sm:gap-10 w-full">
-                <div className="flex flex-col items-start w-[7.875rem] ends_ text-white font-sans text-xl leading-[1.875rem] font-medium">
-                  Ends:
-                </div>
-                <div className="flex flex-col items-start february_27__11_59_pm_ text-stone-400 font-sans text-xl leading-[1.875rem]">
-                  September 30 (11:59 PM UTC)
+                  {loading ? 'Loading...' : (marketData ? marketData.lastUpdated : '—')}
                 </div>
               </div>
             </div>
@@ -175,11 +199,11 @@ const ContainerCryptos = ({ selectedCoin }: { selectedCoin: Coin | null }) => {
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#e1f076] animate-pulse"></span>
                 <div className="sold_cro_token text-white font-sans text-lg md:text-xl leading-6 font-medium">
-                  Sold {selectedCoin ? selectedCoin.symbol : 'NARR'} tokens
+                  Circulating {selectedCoin ? selectedCoin.symbol : 'BNB'} tokens
                 </div>
               </div>
               <div className="val-6523 text-[#e1f076] text-center font-sans text-3xl md:text-[2.2rem] font-bold leading-none mt-2 transition-all duration-300">
-                {soldTokens.toLocaleString()}
+                {loading ? '...' : (marketData ? marketData.circulatingSupply.toLocaleString(undefined, { maximumFractionDigits: 0 }) : '—')}
               </div>
             </div>
 
@@ -199,7 +223,7 @@ const ContainerCryptos = ({ selectedCoin }: { selectedCoin: Coin | null }) => {
           </div>
           
           <div className="flex flex-col items-center w-full val-1-cryptos text-white text-center font-sans text-2xl sm:text-[2.5rem] font-bold leading-10 sm:leading-[48px] mt-8 xl:mt-auto relative z-20 transition-all duration-300">
-            1 {selectedCoin ? selectedCoin.symbol : 'NARR'} = {cryptoRate.toFixed(6)} BTC
+            1 {selectedCoin ? selectedCoin.symbol : 'BNB'} = {loading ? '...' : (marketData ? `$${marketData.price.toLocaleString(undefined, { maximumFractionDigits: 6 })}` : '—')}
           </div>
         </div>
       </div>

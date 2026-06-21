@@ -1,7 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAppKit, useAppKitAccount, useDisconnect } from '@reown/appkit/react';
+import { generateMnemonic, mnemonicToAccount, english } from 'viem/accounts';
+import { toHex } from 'viem/utils';
+import QRCode from 'qrcode';
 import { coinsData, type Coin } from './coinsData';
 import { SmoothCursor } from '@/components/ui/smooth-cursor';
 import GsapCardAnimation from '@/components/GsapCardAnimation';
@@ -35,13 +38,13 @@ const autonomousGuardrailsColumns = [
   }
 ];
 
-const onChainCredentialsColumns = [
+const getOnChainCredentialsColumns = (addr: string) => [
   {
     icon: '/agentcredit/images/v128_171.png',
     iconClass: 'object-cover object-center scale-[2.2]',
-    title: 'Twak wallet mode',
-    subtitle: 'Agent wallet active',
-    bullets: ['Trust wallet safe address: 0x64eFbE37a50C82eD8cba5170f805aA4f2048fDA9']
+    title: 'Agent wallet',
+    subtitle: `${addr.slice(0, 6)}...${addr.slice(-4)}`,
+    bullets: [`${addr}`]
   },
   {
     icon: '/agentcredit/images/v128_198.png',
@@ -187,13 +190,95 @@ export default function Dashboard() {
   const { disconnect } = useDisconnect();
   const [showDisconnect, setShowDisconnect] = useState(false);
 
-  // Close disconnect dropdown on outside click
+  // Create Wallet state
+  const [showCreateWallet, setShowCreateWallet] = useState(false);
+  const [createdWallet, setCreatedWallet] = useState<{ address: string; mnemonic: string; privateKey: string } | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState('');
+  const [showSeedPhrase, setShowSeedPhrase] = useState(false);
+  const [seedCopied, setSeedCopied] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [agentWalletConnected, setAgentWalletConnected] = useState(false);
+  const [showAgentWalletMenu, setShowAgentWalletMenu] = useState(false);
+  const [walletPrivateKey, setWalletPrivateKey] = useState('');
+  const [showWalletKey, setShowWalletKey] = useState(false);
+  const [testStatus, setTestStatus] = useState('idle');
+
+  const handleCreateWallet = useCallback(async () => {
+    setIsCreating(true);
+    try {
+      const mnemonic = generateMnemonic(english, 128);
+      const account = mnemonicToAccount(mnemonic);
+      const hdKey = account.getHdKey();
+      const privateKeyHex = hdKey.privateKey ? toHex(hdKey.privateKey) : 'N/A';
+      const newAddress = account.address;
+      const url = await QRCode.toDataURL(newAddress, { width: 200, margin: 1, color: { dark: '#1c1917', light: '#fafaf9' } });
+      setQrDataUrl(url);
+      setCreatedWallet({
+        address: newAddress,
+        mnemonic,
+        privateKey: privateKeyHex,
+      });
+      // Immediately register with backend (with private key for trading)
+      try {
+        await fetch(`${API_BASE}/api/set-wallet`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: newAddress, private_key: privateKeyHex })
+        });
+      } catch {}
+      setWalletAddress(newAddress);
+      setAgentWalletConnected(true);
+      setShowSeedPhrase(false);
+      setSeedCopied(false);
+      setShowCreateWallet(true);
+    } catch (err) {
+      console.error('Wallet creation failed:', err);
+    } finally {
+      setIsCreating(false);
+    }
+  }, []);
+
+  const disconnectAgentWallet = useCallback(async () => {
+    try {
+      await fetch(`${API_BASE}/api/set-wallet`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: '0x0000000000000000000000000000000000000000' })
+      });
+    } catch {}
+    setAgentWalletConnected(false);
+    setCreatedWallet(null);
+    setWalletAddress('0x64eFbE37a50C82eD8cba5170f805aA4f2048fDA9');
+    setShowAgentWalletMenu(false);
+  }, []);
+
+  const copySeedPhrase = useCallback(() => {
+    if (!createdWallet) return;
+    navigator.clipboard.writeText(createdWallet.mnemonic);
+    setSeedCopied(true);
+    setTimeout(() => setSeedCopied(false), 2000);
+  }, [createdWallet]);
+
+  const downloadWalletBackup = useCallback(() => {
+    if (!createdWallet) return;
+    const blob = new Blob([
+      `Narrative Rotator - Agent Wallet Backup\n${'='.repeat(50)}\n\nAddress: ${createdWallet.address}\n\nSecret Recovery Phrase:\n${createdWallet.mnemonic}\n\nPrivate Key: ${createdWallet.privateKey}\n\n${'='.repeat(50)}\nWARNING: Never share your seed phrase or private key with anyone!`
+    ], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `narrative-wallet-${createdWallet.address.slice(2, 8)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [createdWallet]);
+
+  // Close dropdowns on outside click
   useEffect(() => {
-    if (!showDisconnect) return;
-    const handler = () => setShowDisconnect(false);
+    if (!showDisconnect && !showAgentWalletMenu) return;
+    const handler = () => { setShowDisconnect(false); setShowAgentWalletMenu(false); };
     document.addEventListener('click', handler);
     return () => document.removeEventListener('click', handler);
-  }, [showDisconnect]);
+  }, [showDisconnect, showAgentWalletMenu]);
 
   // Fetch status, metrics, and logs from backend API
   const fetchData = async () => {
@@ -216,6 +301,13 @@ export default function Dashboard() {
       setMonitoredPairs(statusData.monitored_pairs ?? 0);
       setBscBlock(statusData.bsc_block ? `#${statusData.bsc_block}` : '#—');
       setBnbBalance(statusData.bnb_balance ?? 0);
+      if (statusData.user_wallet && !createdWallet) {
+        setAgentWalletConnected(true);
+        setWalletAddress(statusData.user_wallet);
+      }
+      if (statusData.user_wallet && !createdWallet) {
+        setAgentWalletConnected(true);
+      }
 
       // Fetch metrics
       const metricsRes = await fetch(`${API_BASE}/api/metrics`);
@@ -554,6 +646,12 @@ export default function Dashboard() {
               <span className="text-stone-300 font-semibold">{bnbBalance.toFixed(4)}</span>
             </div>
 
+            {/* Agent wallet address */}
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0B0C0D] border border-stone-800/60">
+              <div className="w-2 h-2 rounded-full bg-[#CDFC74] shadow-[0_0_6px_rgba(205,252,116,0.4)]"></div>
+              <span className="text-stone-400 text-xs font-mono">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
+            </div>
+
             <div className="w-px h-5 bg-stone-800 mx-2"></div>
 
             <button
@@ -573,6 +671,7 @@ export default function Dashboard() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-3 text-sm font-medium">
+            {/* Connect Wallet / Identity */}
             <div className="relative">
               {isConnected ? (
                 <>
@@ -614,6 +713,59 @@ export default function Dashboard() {
                       d="M25 35.5C24.1716 35.5 23.5 36.1716 23.5 37C23.5 37.8284 24.1716 38.5 25 38.5V35.5ZM49.0607 38.0607C49.6464 37.4749 49.6464 36.5251 49.0607 35.9393L39.5147 26.3934C38.9289 25.8076 37.9792 25.8076 37.3934 26.3934C36.8076 26.9792 36.8076 27.9289 37.3934 28.5147L45.8787 37L37.3934 45.4853C36.8076 46.0711 36.8076 47.0208 37.3934 47.6066C37.9792 48.1924 38.9289 48.1924 39.5147 47.6066L49.0607 38.0607ZM25 38.5L48 38.5V35.5L25 35.5V38.5Z"
                     ></path>
                   </svg>
+                </button>
+              )}
+            </div>
+
+            {/* Agent Wallet (Create / Connected) */}
+            <div className="relative">
+              {agentWalletConnected && createdWallet ? (
+                <>
+                  <button
+                    onClick={() => setShowAgentWalletMenu((prev) => !prev)}
+                    className="flex items-center px-4 md:px-6 py-2.5 rounded-lg bg-stone-900 text-stone-200 font-semibold cursor-pointer transition-all duration-200 hover:bg-stone-700 shadow-lg active:scale-95 border border-stone-700"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-[#CDFC74] mr-2 shadow-[0_0_6px_rgba(205,252,116,0.4)]"></div>
+                    <span className="hidden sm:inline">{createdWallet.address.slice(0, 6)}...{createdWallet.address.slice(-4)}</span>
+                    <span className="sm:hidden">{createdWallet.address.slice(0, 4)}</span>
+                  </button>
+                  {showAgentWalletMenu && (
+                    <div className="absolute right-0 top-full mt-2 bg-[#1c1917] border border-stone-800/80 rounded-lg overflow-hidden shadow-xl z-50 min-w-[160px]">
+                      <button
+                        onClick={() => { setShowCreateWallet(true); setShowAgentWalletMenu(false); }}
+                        className="w-full px-4 py-2.5 text-stone-300 text-sm text-left hover:text-white hover:bg-stone-800 transition-colors"
+                      >
+                        View Details
+                      </button>
+                      <button
+                        onClick={disconnectAgentWallet}
+                        className="w-full px-4 py-2.5 text-red-400 text-sm text-left hover:text-red-300 hover:bg-stone-800 transition-colors"
+                      >
+                        Disconnect Wallet
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <button
+                  onClick={handleCreateWallet}
+                  disabled={isCreating}
+                  className="flex items-center px-4 md:px-6 py-2.5 rounded-lg bg-stone-900 text-stone-300 font-semibold cursor-pointer transition-all duration-200 hover:bg-stone-700 shadow-lg active:scale-95 border border-stone-700"
+                >
+                  {isCreating ? (
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      <span className="hidden sm:inline">Create Wallet</span>
+                      <span className="sm:hidden">Create</span>
+                    </>
+                  )}
                 </button>
               )}
             </div>
@@ -708,7 +860,67 @@ export default function Dashboard() {
                 );
               })}
             </div>
-            <div className="flex gap-3 mt-6">
+
+            {/* Wallet Configuration */}
+            <div className="mt-6 pt-6 border-t border-stone-800">
+              <h3 className="text-white text-base font-semibold mb-4">Wallet Configuration</h3>
+              <p className="text-stone-400 text-xs mb-4">Enter your wallet private key to let the agent trade from your wallet. The key is stored in memory only and never persisted.</p>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="text-stone-400 text-xs font-mono block mb-1">Wallet Address</label>
+                  <input
+                    type="text"
+                    value={walletAddress}
+                    onChange={(e) => setWalletAddress(e.target.value)}
+                    placeholder="0x..."
+                    className="w-full bg-[#191A1B] text-white text-sm rounded-lg px-4 py-2.5 border border-stone-700 outline-none focus:border-[#CDFC74] transition-colors font-mono placeholder:text-stone-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-stone-400 text-xs font-mono block mb-1">Private Key</label>
+                  <div className="relative">
+                    <input
+                      type={showWalletKey ? 'text' : 'password'}
+                      value={walletPrivateKey}
+                      onChange={(e) => setWalletPrivateKey(e.target.value)}
+                      placeholder="0x... (or mnemonic phrase)"
+                      className="w-full bg-[#191A1B] text-white text-sm rounded-lg px-4 py-2.5 border border-stone-700 outline-none focus:border-[#CDFC74] transition-colors font-mono placeholder:text-stone-600 pr-10"
+                    />
+                    <button
+                      onClick={() => setShowWalletKey(!showWalletKey)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-white"
+                    >
+                      {showWalletKey ? (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  {agentWalletConnected ? (
+                    <span className="flex items-center gap-1 text-[#CDFC74]">
+                      <span className="w-2 h-2 rounded-full bg-[#CDFC74] shadow-[0_0_6px_rgba(205,252,116,0.4)]"></span>
+                      Wallet connected — agent can trade
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-stone-500">
+                      <span className="w-2 h-2 rounded-full bg-stone-600"></span>
+                      No trading wallet configured
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 mt-6">
               <button onClick={async () => {
                 for (const [key, value] of Object.entries(settings)) {
                   try {
@@ -719,9 +931,53 @@ export default function Dashboard() {
                     });
                   } catch {}
                 }
+                if (walletPrivateKey) {
+                  try {
+                    const res = await fetch(`${API_BASE}/api/set-wallet`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ address: walletAddress, private_key: walletPrivateKey })
+                    });
+                    const data = await res.json();
+                    if (data.can_trade) setAgentWalletConnected(true);
+                  } catch {}
+                }
                 setShowSettings(false);
-              }} className="flex-1 bg-[#CDFC74] text-stone-900 text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-[#b8e368] transition-colors">Save</button>
-              <button onClick={() => setShowSettings(false)} className="flex-1 bg-stone-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-stone-700 transition-colors">Cancel</button>
+              }} className="w-full bg-[#CDFC74] text-stone-900 text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-[#b8e368] transition-colors">Save &amp; Connect</button>
+              <div className="flex gap-3">
+                <button
+                  onClick={async () => {
+                    if (!walletPrivateKey) return;
+                    setTestStatus('sending...');
+                    try {
+                      const res = await fetch(`${API_BASE}/api/set-wallet`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ address: walletAddress, private_key: walletPrivateKey })
+                      });
+                      const data = await res.json();
+                      if (!data.can_trade) { setTestStatus('invalid key'); return; }
+                      setAgentWalletConnected(true);
+                      const swapRes = await fetch(`${API_BASE}/api/test-swap`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ from_token: 'USDC', to_token: 'CAKE', amount_usd: 0.5 })
+                      });
+                      const swapData = await swapRes.json();
+                      setTestStatus(swapData.status === 'success' ? 'success' : `failed: ${swapData.message}`);
+                    } catch (e: any) { setTestStatus(`error: ${e.message}`); }
+                  }}
+                  className="flex-1 bg-stone-800 text-stone-300 text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-stone-700 transition-colors border border-stone-700"
+                >
+                  {testStatus === 'sending...' ? 'Swapping...' : 'Test Swap $0.50'}
+                </button>
+                <button onClick={() => setShowSettings(false)} className="flex-1 bg-stone-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-stone-700 transition-colors">Cancel</button>
+              </div>
+              {testStatus && testStatus !== 'idle' && testStatus !== 'sending...' && (
+                <p className={`text-xs text-center ${testStatus === 'success' ? 'text-[#CDFC74]' : 'text-red-400'}`}>
+                  {testStatus === 'success' ? 'Swap executed successfully!' : testStatus}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -814,6 +1070,136 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* Create Wallet Modal */}
+      {showCreateWallet && createdWallet && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowCreateWallet(false)}>
+          <div className="bg-[#0B0C0D] border border-stone-800 rounded-2xl p-8 w-full max-w-lg mx-4 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-white text-xl font-semibold">Agent Wallet Created</h2>
+              <button onClick={() => setShowCreateWallet(false)} className="text-stone-400 hover:text-white transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            {/* Warning Banner */}
+            <div className="bg-red-900/20 border border-red-800/40 rounded-xl p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <div>
+                  <p className="text-red-300 text-sm font-medium">Save Your Recovery Phrase</p>
+                  <p className="text-red-400/70 text-xs mt-1">This is the ONLY way to recover your wallet. Write it down and store it securely. Never share it with anyone.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* QR Code */}
+            <div className="flex justify-center mb-6">
+              <div className="bg-[#fafaf9] rounded-xl p-3">
+                {qrDataUrl && <img src={qrDataUrl} alt="Wallet QR Code" className="w-40 h-40" />}
+              </div>
+            </div>
+
+            {/* Wallet Address */}
+            <div className="bg-[#050505] rounded-xl p-4 border border-stone-800 mb-4">
+              <p className="text-stone-400 text-xs mb-2">Wallet Address (BSC / Ethereum)</p>
+              <div className="flex items-center justify-between gap-2">
+                <code className="text-[#CDFC74] text-sm font-mono truncate">{createdWallet.address}</code>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(createdWallet.address); }}
+                  className="text-stone-400 hover:text-white shrink-0 transition-colors"
+                  title="Copy address"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Seed Phrase */}
+            <div className="bg-[#050505] rounded-xl p-4 border border-stone-800 mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-stone-400 text-xs">Secret Recovery Phrase (12 words)</p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowSeedPhrase(!showSeedPhrase)}
+                    className="text-stone-400 hover:text-white text-xs transition-colors"
+                  >
+                    {showSeedPhrase ? 'Hide' : 'Show'}
+                  </button>
+                  <button
+                    onClick={copySeedPhrase}
+                    className="text-stone-400 hover:text-white transition-colors"
+                    title="Copy seed phrase"
+                  >
+                    {seedCopied ? (
+                      <svg className="w-4 h-4 text-[#CDFC74]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+              {showSeedPhrase ? (
+                <div className="grid grid-cols-3 gap-2">
+                  {createdWallet.mnemonic.split(' ').map((word, i) => (
+                    <div key={i} className="bg-[#191A1B] rounded-lg px-3 py-2 flex items-center gap-2">
+                      <span className="text-stone-500 text-xs w-4">{i + 1}</span>
+                      <span className="text-white text-sm font-mono">{word}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-[#191A1B] rounded-lg p-4 text-center">
+                  <p className="text-stone-500 text-sm">•••••••• •••••••• •••••••• ••••••••</p>
+                  <p className="text-stone-500 text-xs mt-1">Click "Show" to reveal your recovery phrase</p>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={downloadWalletBackup}
+                className="w-full bg-[#CDFC74] text-stone-900 font-semibold py-3 rounded-xl hover:bg-[#b8e368] transition-colors flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download Backup (.txt)
+              </button>
+              <button
+                onClick={async () => {
+                  navigator.clipboard.writeText(createdWallet.address);
+                  try {
+                    await fetch(`${API_BASE}/api/set-wallet`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ address: createdWallet.address, private_key: createdWallet.privateKey })
+                    });
+                  } catch {}
+                  setShowCreateWallet(false);
+                }}
+                className="w-full bg-transparent border border-stone-700 text-stone-300 font-medium py-3 rounded-xl hover:bg-stone-800 transition-colors"
+              >
+                Done — I Saved My Phrase
+              </button>
+            </div>
+
+            <p className="text-stone-500 text-xs text-center mt-4">
+              This wallet is self-custodial. Only you control the funds. Add BNB to this address to start trading.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ============================================= */}
       {/* MAIN CONTAINER */}
       {/* ============================================= */}
@@ -859,7 +1245,7 @@ export default function Dashboard() {
                     </h1>
                   </div>
                   <div className="flex flex-col items-center gap-2 shrink-0">
-                    <img src="/BTC.png" alt="BTC" className="w-[280px] h-[280px] -mt-32" />
+                    <img src="/BTC.png" alt="BTC" className="w-[280px] h-[280px] mt-4 md:-mt-32" />
                     <div className="flex items-center gap-5">
                       <link href="/social icon/css/main.css" rel="stylesheet" />
                       <div className="v116_8899 cursor-pointer hover:opacity-80 transition-opacity">
@@ -1021,7 +1407,7 @@ export default function Dashboard() {
                     {
                       title: "On-chain credentials",
                       subtitle: "Autonomous identity parameters on Bnb Chain (Bsc)",
-                      columns: onChainCredentialsColumns
+                      columns: getOnChainCredentialsColumns(walletAddress)
                     }
                   ]}
                 />
