@@ -448,6 +448,35 @@ def get_incoming_messages():
 def receive_agent_message(msg: WebhookMessage):
     state.add_incoming_message(msg.model_dump())
     state.add_log("info", f"[Webhook] Message from {msg.agent}: {msg.type}")
+    
+    # Process potential trade proposals from other agents
+    intent = msg.data.get("intent", "")
+    if intent in ["execute_buy_orders", "coordinate_trade", "trade_proposal"]:
+        tokens = msg.data.get("target_assets", [])
+        if not tokens and msg.data.get("token"):
+            tokens = [msg.data.get("token")]
+            
+        if isinstance(tokens, str):
+            tokens = [tokens]
+            
+        sector = msg.data.get("suggested_sector", "External")
+        confidence = float(msg.data.get("confidence", 0.8))
+        
+        # Base trade amount on confidence
+        amount_usd = round(100.0 * confidence, 2)
+        
+        for token in tokens:
+            proposal = {
+                "sector": sector,
+                "token": token,
+                "amount_usd": amount_usd,
+                "diff_pct": 0,
+                "is_buy": True,
+                "reason": f"External Agent ({msg.agent}): {msg.data.get('message', 'Trade recommendation')}",
+            }
+            trade = state.add_pending_trade(proposal)
+            state.add_log("info", f"[{msg.agent} PROPOSAL #{trade['id']}] Buy ${amount_usd} {token} ({sector})")
+
     # Auto-respond with current agent status
     return {
         "status": "received",

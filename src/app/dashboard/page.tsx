@@ -174,6 +174,7 @@ export default function Dashboard() {
   const [webhooks, setWebhooks] = useState<string[]>([]);
   const [webhookUrl, setWebhookUrl] = useState('');
   const [incomingMessages, setIncomingMessages] = useState<any[]>([]);
+  const [chatMessage, setChatMessage] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [showAgents, setShowAgents] = useState(false);
 
@@ -293,6 +294,39 @@ export default function Dashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url })
       });
+      fetchWebhookData();
+    } catch {}
+  };
+
+  const sendChatToAgent = async () => {
+    if (!chatMessage.trim()) return;
+    try {
+      const payload: any = {
+        agent: "User",
+        type: "natural_language_command",
+        data: {
+          intent: "chat",
+          message: chatMessage.trim(),
+          confidence: 0.9,
+        }
+      };
+      
+      const words = chatMessage.toUpperCase().split(' ');
+      const possibleTokens = words.filter(w => /^[A-Z]{2,5}$/.test(w) && !['THE', 'BUY', 'AND', 'FOR', 'SELL'].includes(w));
+      
+      if (chatMessage.toLowerCase().includes('buy') || chatMessage.toLowerCase().includes('اشتري') || chatMessage.toLowerCase().includes('استثمر')) {
+        payload.data.intent = "trade_proposal";
+        if (possibleTokens.length > 0) {
+          payload.data.target_assets = possibleTokens;
+        }
+      }
+
+      await fetch(`${API_BASE}/api/agent-webhook`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      setChatMessage('');
       fetchWebhookData();
     } catch {}
   };
@@ -756,7 +790,28 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
+              </div>
             </div>
+            
+            {/* Chat with Agent */}
+            <div className="mt-6 bg-[#050505] rounded-xl p-5 border border-stone-800">
+              <h4 className="text-white text-base font-medium mb-3">Send Command to Agent</h4>
+              <p className="text-stone-400 text-xs mb-4">Type a natural language command (e.g. "Buy FET"). It will be translated into a structured webhook and sent to the agent.</p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && sendChatToAgent()}
+                  placeholder="Type your command..."
+                  className="flex-1 bg-[#191A1B] text-white text-sm rounded-lg px-4 py-3 border border-stone-700 outline-none focus:border-[#CDFC74] transition-colors placeholder:text-stone-500"
+                />
+                <button onClick={sendChatToAgent} className="bg-[#CDFC74] text-stone-900 text-sm font-medium px-6 py-3 rounded-lg hover:bg-[#b8e368] transition-colors whitespace-nowrap">
+                  Send Command
+                </button>
+              </div>
+            </div>
+            
           </div>
         </div>
       )}
