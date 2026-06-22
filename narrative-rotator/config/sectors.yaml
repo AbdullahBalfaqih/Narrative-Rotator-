@@ -1,24 +1,13 @@
-# Sector definition and asset configurations for Narrative Rotator
-# Tracks assets primarily deployed or available for swapping on BNB Chain
-
 sectors:
   AI:
     name: "Artificial Intelligence"
-    tokens: ["FET", "WLD", "RNDR", "AGIX", "TAO"]
+    tokens: ["FET"]
     primary_stable: "USDC"
   DeFi:
     name: "Decentralized Finance"
-    tokens: ["UNI", "AAVE", "CAKE", "MKR", "CRV"]
-    primary_stable: "USDT"
+    tokens: ["AAVE", "CAKE"]
+    primary_stable: "USDC"
   Meme:
     name: "Meme Tokens"
-    tokens: ["DOGE", "SHIB", "PEPE", "FLOKI", "BABYDOGE"]
-    primary_stable: "USDT"
-  RWA:
-    name: "Real World Assets"
-    tokens: ["ONDO", "CFG", "POLYX", "OM", "GFI"]
-    primary_stable: "USDC"
-  L2:
-    name: "Layer 2 Scaling"
-    tokens: ["ARB", "OP", "MATIC", "METIS", "MNT"]
+    tokens: ["FLOKI"]
     primary_stable: "USDC"

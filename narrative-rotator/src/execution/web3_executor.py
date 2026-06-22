@@ -15,22 +15,24 @@ BSC_TOKEN_ADDRESSES = {
     "BUSD": "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
     "USDT": "0x55d398326f99059fF775485246999027B3197955",
     "XRP": "0x1D2F0da169ceB9fC7B3144628dB156f3F6c60dBE",
-    "DOGE": "0xbA2aE424d960c26247Dd6c32edC70B295c744C43",
     "DOT": "0x7083609fCE4d1d8Dc0C979AAb8c869Ea2C873402",
-    "UNI": "0xBf5140A22578168FD562DCcF235E5D43A02ce9B1",
     "AAVE": "0xfb6115445Bff7b52FeB98650C87f44907E58f802",
-    "ONDO": "0xE9B5A3bC8B5393d2Bc1E1941DbeE3A3Bd88C1c0a",
-    "PEPE": "0x25d887Ce7a35172C62FeBFD67a1856F20FaEbB00",
-    "ARB": "0xa0E6e4b3c8F128d1bEf12B7E47E1E8e7D7a9e1a0",
-    "FET": "0x031b41e504677879370e9DBbCf6E6C8aC0D9bA9d",
+    "CFG": "0xfaa53F4A3B29B217E4A60411C490cE1E61144444",
+    "FET": "0x031b41e504677879370e9DBcF937283A8691Fa7f",
+    "FLOKI": "0xfb5B838b6cfEEdC2873aB27866079AC55363D37E",
+    "ADA": "0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47",
+    "SOL": "0x570A5D26f7765Ecb712C0924E4De545B89f43BF3",
+    "LINK": "0xF8A0BF9cF54Bb92F17374d9e9A321E6a111a51bD",
+    "SHIB": "0x2859e4544C4bB03966803b044A93563Bd2D0DD4D",
+    "LTC": "0x4338665CBB7B2485A8855A139b75D5e34AB0DB94",
 }
 
 PANCAKE_ROUTER_ABI = [
     {"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"stateMutability":"view","type":"function"},
-    {"inputs":[{"internalType":"uint256","name":"amountOutMin","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"deadline","type":"uint256"}],"name":"swapExactTokensForTokens","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"stateMutability":"nonpayable","type":"function"},
-    {"inputs":[{"internalType":"uint256","name":"amountOutMin","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"deadline","type":"uint256"}],"name":"swapExactTokensForTokensSupportingFeeOnTransferTokens","outputs":[],"stateMutability":"nonpayable","type":"function"},
+    {"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"amountOutMin","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"deadline","type":"uint256"}],"name":"swapExactTokensForTokens","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"stateMutability":"nonpayable","type":"function"},
+    {"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"amountOutMin","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"deadline","type":"uint256"}],"name":"swapExactTokensForTokensSupportingFeeOnTransferTokens","outputs":[],"stateMutability":"nonpayable","type":"function"},
     {"inputs":[{"internalType":"uint256","name":"amountOutMin","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"deadline","type":"uint256"}],"name":"swapExactETHForTokens","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"stateMutability":"payable","type":"function"},
-    {"inputs":[{"internalType":"uint256","name":"amountOutMin","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"deadline","type":"uint256"}],"name":"swapExactTokensForETH","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"stateMutability":"nonpayable","type":"function"},
+    {"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"amountOutMin","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"deadline","type":"uint256"}],"name":"swapExactTokensForETH","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"stateMutability":"nonpayable","type":"function"},
 ]
 
 ERC20_ABI = [
@@ -119,25 +121,27 @@ class Web3Executor:
                 min_out = 0
 
             # Approve if spending token (not BNB)
+            nonce = self.w3.eth.get_transaction_count(sender)
             if from_addr != WBNB:
                 approve_tx = from_contract.functions.approve(
                     PANCAKE_ROUTER, amount_in_wei
                 ).build_transaction({
                     'from': sender,
-                    'nonce': self.w3.eth.get_transaction_count(sender),
+                    'nonce': nonce,
                     'gas': 100000,
                     'gasPrice': self.w3.eth.gas_price,
                 })
                 signed_approve = account.sign_transaction(approve_tx)
                 self.w3.eth.send_raw_transaction(signed_approve.raw_transaction)
                 logger.info(f"Web3: Approved {from_token} for swap")
+                nonce += 1
 
-            # Execute swap
-            swap_tx = self.router.functions.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+            # Execute swap (use standard swap for non-fee tokens)
+            swap_tx = self.router.functions.swapExactTokensForTokens(
                 amount_in_wei, min_out, path, sender, deadline
             ).build_transaction({
                 'from': sender,
-                'nonce': self.w3.eth.get_transaction_count(sender),
+                'nonce': nonce,
                 'gas': 300000,
                 'gasPrice': self.w3.eth.gas_price,
             })

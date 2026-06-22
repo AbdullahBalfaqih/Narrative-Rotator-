@@ -81,11 +81,10 @@ class CMCClient:
         if not self.api_key:
             # Standby Mock values
             mock_prices = {
-                "FET": 1.45, "RNDR": 7.80, "TAO": 380.0,
-                "UNI": 7.20, "AAVE": 88.50, "CAKE": 2.10,
-                "DOGE": 0.12, "PEPE": 0.000012, "SHIB": 0.000018,
-                "ONDO": 0.95, "CFG": 0.68, "POLYX": 0.32,
-                "ARB": 0.85, "OP": 1.95, "MATIC": 0.55
+                "FET": 1.45, "AAVE": 88.50, "CAKE": 2.10,
+                "FLOKI": 0.00015, "INJ": 4.94, "LINK": 14.20,
+                "ADA": 0.38, "DOT": 5.50, "SHIB": 0.000018,
+                "DOGE": 0.12, "BNB": 585.0, "USDC": 1.0,
             }
             return mock_prices.get(symbol, 1.0)
 
@@ -158,11 +157,11 @@ class CMCClient:
 
         # 3. Token quotes for news_volume_24h / news_positive_ratio
         sector_token_map = {
-            "AI": "FET,RNDR,TAO,NEAR",
-            "DeFi": "UNI,AAVE,CAKE",
-            "Meme": "DOGE,PEPE,SHIB",
-            "RWA": "ONDO,CFG,POLYX",
-            "L2": "ARB,OP,MATIC",
+            "AI": "FET,INJ",
+            "DeFi": "AAVE,CAKE",
+            "Meme": "FLOKI,SHIB,DOGE",
+            "RWA": "LINK",
+            "L1": "ADA,DOT",
         }
         tokens = sector_token_map.get(sector_name, "BTC")
         quotes = self._cached_get(

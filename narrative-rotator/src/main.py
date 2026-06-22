@@ -1,6 +1,11 @@
 import os
+import sys
 import time
 from dotenv import load_dotenv
+
+# Ensure src is on the path (for python src/main.py direct invocation)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.utils.logger import logger
 from src.data.cmc_client import CMCClient
 from src.data.sentiment_analyzer import SentimentAnalyzer

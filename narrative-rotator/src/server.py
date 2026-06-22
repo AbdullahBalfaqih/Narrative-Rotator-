@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import random
 import requests
 import threading
@@ -10,6 +11,9 @@ from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
+
+# Ensure src is on the path (for python src/server.py direct invocation)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import agent components
 from src.utils.logger import logger
@@ -43,7 +47,7 @@ class AgentSharedState:
         self.auto_trade = False
         self.status_text = "Standby - Waiting for activation"
         self.x402_total_paid = 0.0
-        self.portfolio_value = 12480.50
+        self.portfolio_value = 0.0
         self.heats = {"AI": 78, "DeFi": 45, "RWA": 62, "Meme": 89, "L2": 50}
         self.allocation = {"AI": 25, "DeFi": 15, "RWA": 20, "Meme": 30, "L2": 10}
         self.logs = [
@@ -60,6 +64,8 @@ class AgentSharedState:
         self.portfolio_history = []  # (timestamp, value)
         self.incoming_messages = []  # Messages from other agents
         self.outgoing_webhooks = []  # URLs to notify on events
+        self.max_portfolio_value = 12480.50
+        self.last_price_cache = {}
 
     def add_log(self, type_str, message_str):
         with self.lock:
@@ -131,6 +137,35 @@ class AgentSharedState:
             return False
 
 state = AgentSharedState()
+
+def send_notification(title: str, message: str):
+    # Telegram
+    telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    if telegram_token and telegram_chat_id:
+        try:
+            url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
+            payload = {"chat_id": telegram_chat_id, "text": f"*{title}*\n{message}", "parse_mode": "Markdown"}
+            requests.post(url, json=payload, timeout=5)
+        except Exception as e:
+            logger.error(f"Telegram notification failed: {e}")
+            
+    # Discord
+    discord_webhook = os.getenv("DISCORD_WEBHOOK_URL")
+    if discord_webhook:
+        try:
+            payload = {
+                "username": "Narrative Rotator",
+                "avatar_url": "https://cryptologos.cc/logos/bnb-bnb-logo.png",
+                "embeds": [{
+                    "title": title,
+                    "description": message,
+                    "color": 14742086
+                }]
+            }
+            requests.post(discord_webhook, json=payload, timeout=5)
+        except Exception as e:
+            logger.error(f"Discord notification failed: {e}")
 
 # Initialize core agent dependencies
 cmc = CMCClient()
@@ -221,6 +256,7 @@ def agent_loop():
     original_run_cycle = agent.run_one_cycle
     
     while True:
+        state.wallet_address = portfolio_manager.wallet_address or state.wallet_address
         if not state.is_active:
             time.sleep(1)
             continue
@@ -239,13 +275,29 @@ def agent_loop():
                 p["price"] = portfolio_manager.token_prices.get(p["token"], 0)
                 p["change_pct"] = round(abs(p["diff_pct"]) * random.uniform(0.3, 1.5), 2)
                 if not state.auto_trade:
-                    trade = state.add_pending_trade(p)
-                    state.add_log("info", f"[PROPOSAL #{trade['id']}] {'Buy' if p['is_buy'] else 'Sell'} ${p['amount_usd']:.2f} {p['token']} ({p['sector']})")
-                    state.fire_webhooks("trade_proposal", {"id": trade["id"], "action": "buy" if p["is_buy"] else "sell", "token": p["token"], "amount": p["amount_usd"], "sector": p["sector"]})
+                    # Check if a trade for this token is already pending
+                    is_duplicate = any(t for t in state.pending_trades if t["token"] == p["token"] and t["status"] == "pending")
+                    if not is_duplicate:
+                        trade = state.add_pending_trade(p)
+                        state.add_log("info", f"[PROPOSAL #{trade['id']}] {'Buy' if p['is_buy'] else 'Sell'} ${p['amount_usd']:.2f} {p['token']} ({p['sector']})")
+                        send_notification(
+                            "🚨 New Trade Proposal", 
+                            f"**Action:** {'Buy' if p['is_buy'] else 'Sell'} {p['token']}\n**Amount:** ${p['amount_usd']:.2f}\n**Sector:** {p['sector']}\n**Reason:** {p['reason']}"
+                        )
+                        state.fire_webhooks("trade_proposal", {"id": trade["id"], "action": "buy" if p["is_buy"] else "sell", "token": p["token"], "amount": p["amount_usd"], "sector": p["sector"]})
                 else:
                     state.total_trades_executed += 1
                     state.add_log("success", f"[AUTO] {'Buy' if p['is_buy'] else 'Sell'} ${p['amount_usd']:.2f} {p['token']} ({p['sector']})")
                     state.fire_webhooks("trade_auto", {"action": "buy" if p["is_buy"] else "sell", "token": p["token"], "amount": p["amount_usd"], "sector": p["sector"]})
+                    telegram_chat_reply(
+                        os.getenv("TELEGRAM_CHAT_ID", ""),
+                        f"✅ **Auto-Trade Executed**\n"
+                        f"**Action:** {'Buy' if p['is_buy'] else 'Sell'} {p['token']}\n"
+                        f"**Amount:** ${p['amount_usd']:.2f}\n"
+                        f"**Sector:** {p['sector']}\n"
+                        f"**Wallet:** `{state.wallet_address}`\n"
+                        f"🔗 [BscScan](https://bscscan.com/address/{state.wallet_address})"
+                    )
             
             # Update values
             new_heats = tracker.track_all_sectors(agent.sectors_config)
@@ -264,6 +316,21 @@ def agent_loop():
             
             state.update_metrics(formatted_heats, formatted_alloc, new_val, state.x402_total_paid)
             
+            # --- Smart Alerts: Portfolio Milestones ---
+            if new_val > state.max_portfolio_value + 1000:
+                state.max_portfolio_value = new_val
+                send_notification("🏆 Portfolio Milestone!", f"New All-Time High reached!\n**Total Value:** ${new_val:,.2f} 🚀")
+            
+            # --- Smart Alerts: Price Volatility ---
+            for token, current_price in portfolio_manager.token_prices.items():
+                last_price = state.last_price_cache.get(token)
+                if last_price:
+                    change_pct = ((current_price - last_price) / last_price) * 100
+                    if abs(change_pct) >= 5.0:
+                        emoji = "🚀" if change_pct > 0 else "📉"
+                        send_notification(f"{emoji} Volatility Alert: {token}", f"**{token}** moved by **{change_pct:+.2f}%**!\nCurrent Price: ${current_price:,.4f}")
+                state.last_price_cache[token] = current_price
+
             # Track portfolio history for daily profit
             state.portfolio_history.append((time.time(), new_val))
             if len(state.portfolio_history) > 100:
@@ -282,6 +349,102 @@ def agent_loop():
 # Start background thread automatically
 thread = threading.Thread(target=agent_loop, daemon=True)
 thread.start()
+
+# --- Interactive Telegram Bot ---
+def telegram_chat_reply(chat_id, text):
+    telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    if not telegram_token: return
+    try:
+        url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
+        payload = {"chat_id": chat_id, "text": text, "parse_mode": "Markdown"}
+        requests.post(url, json=payload, timeout=5)
+    except Exception as e:
+        logger.error(f"Telegram reply failed: {e}")
+
+def get_ai_reply(user_message):
+    openrouter_key = os.getenv("OPENROUTER_API_KEY")
+    if not openrouter_key:
+        return "⚠️ OpenRouter API Key is missing. I cannot chat right now."
+    
+    prompt = f"""You are 'Narrative Rotator', an advanced AI crypto portfolio manager.
+The user is talking to you on Telegram.
+Current State:
+- Portfolio Value: ${state.portfolio_value:,.2f}
+- Active Mode: {state.is_active}
+- Auto Trade (Real Money): {state.auto_trade}
+- Top Sectors: {state.heats}
+
+User Message: {user_message}
+
+Reply briefly, professionally, and warmly in the user's language (likely Arabic). Keep it under 3 sentences."""
+    
+    try:
+        resp = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={"Authorization": f"Bearer {openrouter_key}"},
+            json={
+                "model": os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3.1-8b-instruct"),
+                "messages": [{"role": "system", "content": prompt}]
+            },
+            timeout=10
+        )
+        if resp.ok:
+            return resp.json()["choices"][0]["message"]["content"]
+        return "Sorry, I am having trouble connecting to my AI brain right now."
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+def telegram_polling_loop():
+    telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    if not telegram_token:
+        return
+    
+    logger.info("Telegram Polling Loop started.")
+    last_update_id = 0
+    url = f"https://api.telegram.org/bot{telegram_token}/getUpdates"
+    
+    while True:
+        try:
+            resp = requests.get(f"{url}?offset={last_update_id}&timeout=10", timeout=15)
+            if resp.ok:
+                data = resp.json()
+                for update in data.get("result", []):
+                    last_update_id = update["update_id"] + 1
+                    msg = update.get("message")
+                    if msg and "text" in msg:
+                        chat_id = msg["chat"]["id"]
+                        text = msg["text"].strip()
+                        
+                        if text == "/status":
+                            active_str = "🟢 Active" if state.is_active else "🔴 Stopped"
+                            auto_str = "🟢 ON (Real Money)" if state.auto_trade else "🔴 OFF (Simulation)"
+                            telegram_chat_reply(chat_id, f"📊 **Portfolio Status**\nValue: ${state.portfolio_value:,.2f}\nAgent: {active_str}\nAuto-Trade: {auto_str}")
+                        elif text == "/start":
+                            state.is_active = True
+                            state.add_log("info", "Agent started via Telegram.")
+                            telegram_chat_reply(chat_id, "🟢 Agent has been **STARTED**.")
+                        elif text == "/stop":
+                            state.is_active = False
+                            state.add_log("info", "Agent stopped via Telegram.")
+                            telegram_chat_reply(chat_id, "🔴 Agent has been **STOPPED**.")
+                        elif text == "/auto_on":
+                            state.auto_trade = True
+                            state.add_log("info", "Auto trade enabled via Telegram.")
+                            telegram_chat_reply(chat_id, "⚠️ Auto-Trade **ENABLED**. I will now execute real trades.")
+                        elif text == "/auto_off":
+                            state.auto_trade = False
+                            state.add_log("info", "Auto trade disabled via Telegram.")
+                            telegram_chat_reply(chat_id, "🛡️ Auto-Trade **DISABLED**. Reverting to simulation mode.")
+                        else:
+                            # Natural conversation
+                            reply = get_ai_reply(text)
+                            telegram_chat_reply(chat_id, reply)
+        except Exception as e:
+            pass
+        time.sleep(2)
+
+telegram_thread = threading.Thread(target=telegram_polling_loop, daemon=True)
+telegram_thread.start()
 
 # REST Endpoints
 def fetch_bsc_block():
@@ -351,6 +514,7 @@ def toggle_agent():
     state.is_active = not state.is_active
     status = "started" if state.is_active else "stopped"
     state.add_log("info", f"Agent execution {status} by user call.")
+    send_notification("⚙️ System Status", f"Agent execution has been **{status}**.")
     return {"is_active": state.is_active}
 
 class RiskLimitsUpdate(BaseModel):
@@ -361,6 +525,7 @@ class RiskLimitsUpdate(BaseModel):
 @app.post("/api/risk")
 def update_risk_limits(data: RiskLimitsUpdate):
     state.add_log("info", f"Updating autonomous limits: Daily Drawdown={data.daily_drawdown}%, Max Trade={data.max_trade_size}%.")
+    send_notification("🛡️ Risk Limits Updated", f"**Daily Drawdown:** {data.daily_drawdown}%\n**Max Trade Size:** {data.max_trade_size}%\n**Slippage Tolerance:** {data.slippage}%")
     
     # Save to yaml file
     config_path = "config/risk_limits.yaml"
@@ -412,10 +577,12 @@ def approve_trade(data: TradeAction):
             if is_buy:
                 portfolio_manager.adjust_asset_shares(token, amount, is_buy=True)
                 state.add_log("success", f"[APPROVED] Bought ${amount:.2f} {token} ({trade['sector']})")
+                send_notification("✅ Trade Executed", f"Successfully bought **${amount:.2f} {token}** in the {trade['sector']} sector.")
                 state.fire_webhooks("trade_executed", {"action": "buy", "token": token, "amount": amount, "sector": trade["sector"]})
             else:
                 portfolio_manager.adjust_asset_shares(token, amount, is_buy=False)
                 state.add_log("success", f"[APPROVED] Sold ${amount:.2f} {token} ({trade['sector']})")
+                send_notification("✅ Trade Executed", f"Successfully sold **${amount:.2f} {token}** from the {trade['sector']} sector.")
                 state.fire_webhooks("trade_executed", {"action": "sell", "token": token, "amount": amount, "sector": trade["sector"]})
     except Exception as e:
         state.add_log("warn", f"Trade #{data.trade_id} execution failed: {str(e)}")
@@ -436,6 +603,7 @@ def toggle_auto_trade():
     state.auto_trade = not state.auto_trade
     mode = "enabled" if state.auto_trade else "disabled"
     state.add_log("info", f"Auto trade {mode}")
+    send_notification("⚙️ Trading Mode", f"Auto-Trading is now **{mode}**.")
     return {"auto_trade": state.auto_trade}
 
 # --- Webhook / Inter-Agent Communication ---
@@ -457,6 +625,7 @@ def get_incoming_messages():
 def receive_agent_message(msg: WebhookMessage):
     state.add_incoming_message(msg.model_dump())
     state.add_log("info", f"[Webhook] Message from {msg.agent}: {msg.type}")
+    send_notification("🤖 New Agent Message", f"**From:** {msg.agent}\n**Intent:** {msg.data.get('intent', 'N/A')}\n**Message:** {msg.data.get('message', 'No message content.')}")
     
     # Process potential trade proposals from other agents
     intent = msg.data.get("intent", "")

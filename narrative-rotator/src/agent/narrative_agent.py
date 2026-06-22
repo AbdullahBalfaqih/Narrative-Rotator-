@@ -26,11 +26,9 @@ class NarrativeRotatorAgent:
         else:
             logger.warning("sectors.yaml not found. Using default mock sectors.")
             self.sectors_config = {
-                "AI": {"tokens": ["FET", "RNDR"]},
-                "DeFi": {"tokens": ["UNI", "AAVE"]},
-                "Meme": {"tokens": ["PEPE", "DOGE"]},
-                "RWA": {"tokens": ["ONDO", "CFG"]},
-                "L2": {"tokens": ["ARB", "OP"]}
+                "AI": {"tokens": ["FET"]},
+                "DeFi": {"tokens": ["AAVE", "CAKE"]},
+                "Meme": {"tokens": ["FLOKI"]},
             }
 
     def get_current_drawdown(self):
@@ -44,6 +42,12 @@ class NarrativeRotatorAgent:
         current_allocation = self.portfolio.get_current_allocation_percentages()
         logger.info(f"Current Portfolio Valuation: ${current_value:.2f} USD")
         logger.info(f"Current Allocations: {current_allocation}")
+
+        # Halt trading if BNB gas is too low
+        bnb_balance = self.portfolio.bnb_balance
+        if bnb_balance < 0.003:
+            logger.warning(f"BNB gas too low ({bnb_balance:.5f} BNB). Skipping cycle to preserve gas.")
+            return False, []
 
         # Track drawdown
         if current_value > self._peak_value:
@@ -75,32 +79,43 @@ class NarrativeRotatorAgent:
                 target_token = self.sectors_config[sector]["tokens"][0]
                 amount_usd = abs(diff) * current_value
                 is_buy = diff > 0
+                # Cap amount to available stablecoin balance
+                stable_balance = self.portfolio.holdings.get(stable, 0)
+                stable_price = self.portfolio.token_prices.get(stable, 1)
+                available_stable = stable_balance * stable_price
+                remaining_buys = max(1, sum(1 for s, tp in target_allocation.items() if tp - current_allocation.get(s, 0) > 0))
+                buy_cap = available_stable / remaining_buys if is_buy else float('inf')
+                amount_usd = min(amount_usd, buy_cap, 0.25)
+                if amount_usd < 0.01:
+                    continue
                 
                 proposal = {
-                    "sector": sector,
                     "token": target_token,
+                    "sector": sector,
                     "stable": stable,
                     "amount_usd": round(amount_usd, 2),
                     "diff_pct": round(diff * 100, 1),
                     "is_buy": is_buy,
                     "reason": f"{sector} heat shifted by {abs(diff)*100:.1f}% vs target"
                 }
-                proposals.append(proposal)
                 
                 if dry_run:
                     logger.info(f"  [DRY RUN] Would {'buy' if is_buy else 'sell'} {target_token} ({amount_usd:.2f} USD)")
+                    proposals.append(proposal)
                 else:
                     if is_buy:
                         logger.info(f"Target shift detected for sector {sector} (+{diff*100:.1f}%). Triggering buy...")
                         success = self.executor.buy_asset(target_token, stable, amount_usd)
                         if success:
                             self.portfolio.adjust_asset_shares(target_token, amount_usd, is_buy=True)
+                            proposals.append(proposal)
                             has_rotated = True
                     else:
                         logger.info(f"Target shift detected for sector {sector} ({diff*100:.1f}%). Triggering sell...")
                         success = self.executor.sell_asset(target_token, stable, amount_usd)
                         if success:
                             self.portfolio.adjust_asset_shares(target_token, amount_usd, is_buy=False)
+                            proposals.append(proposal)
                             has_rotated = True
 
         if not has_rotated and not proposals:

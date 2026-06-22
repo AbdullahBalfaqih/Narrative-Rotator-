@@ -19,9 +19,7 @@ class PortfolioManager:
         """Fetches BNB balance and token holdings from TWAK on BSC, seeds defaults for demo."""
         password = os.getenv("TWAK_WALLET_PASSWORD")
         if password:
-            allowed_symbols = {"USDC", "USDT", "WBNB", "CAKE", "BUSD", "XRP", "DOGE", "DOT",
-                               "UNI", "AAVE", "ONDO", "PEPE", "ARB", "OP", "FET", "RNDR",
-                               "BNB", "BTC", "ETH"}
+            allowed_symbols = {"USDC", "USDT", "WBNB", "CAKE", "AAVE", "FET", "FLOKI", "BNB", "INJ", "LINK", "ADA", "DOT", "SHIB", "DOGE", "ETH"}
             try:
                 result = subprocess.run(
                     [get_twak_cmd(), "wallet", "portfolio", "--password", password, "--json"],
@@ -49,11 +47,6 @@ class PortfolioManager:
                                         self.holdings[symbol] = self.holdings.get(symbol, 0) + balance
             except Exception as e:
                 logger.warning(f"TWAK fetch failed ({e})")
-        # Seed default token holdings so portfolio looks meaningful
-        defaults = {"FET": 1800.0, "UNI": 150.0, "ONDO": 2200.0,
-                    "PEPE": 280000000.0, "ARB": 1400.0, "USDC": 1200.0, "USDT": 1000.0}
-        for k, v in defaults.items():
-            self.holdings.setdefault(k, v)
         logger.info(f"Portfolio: BNB={self.bnb_balance:.6f}, {len(self.holdings)} tokens tracked")
 
     def update_portfolio_valuation(self, sectors_config):
@@ -82,18 +75,23 @@ class PortfolioManager:
         # Sector mapping for whitelisted tokens
         sector_mapping = {
             "FET": "AI",
-            "UNI": "DeFi",
-            "ONDO": "RWA",
-            "PEPE": "Meme",
-            "ARB": "L2"
+            "AAVE": "DeFi",
+            "CAKE": "DeFi",
+            "FLOKI": "Meme",
+            "INJ": "AI",
+            "LINK": "RWA",
+            "ADA": "L1",
+            "DOT": "L1",
+            "SHIB": "Meme",
+            "DOGE": "Meme",
         }
         
         sector_values = {
             "AI": 0.0,
             "DeFi": 0.0,
-            "RWA": 0.0,
             "Meme": 0.0,
-            "L2": 0.0
+            "RWA": 0.0,
+            "L1": 0.0
         }
         
         for symbol, amount in self.holdings.items():
